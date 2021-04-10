@@ -1,4 +1,4 @@
-from data import tools
+from data import config, tools
 from data.states import game
 
 
@@ -8,5 +8,5 @@ def main():
     state_dict = {
         "GAME": game.Game(),
     }
-    app.state_machine.setup_states(state_dict, "SPLASH")
+    app.state_machine.setup_states(state_dict, "GAME")
     app.main()

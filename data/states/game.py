@@ -12,9 +12,11 @@ from data.components import map
 
 class Game(state_machine._State):
     """Core state for the actual gameplay."""
+
     def __init__(self):
         state_machine._State.__init__(self)
         self.map = map.Map()
+        self.map.initialize("temp string")
 
     def startup(self, now, persistent):
         """
@@ -22,7 +24,6 @@ class Game(state_machine._State):
         If reset_map has been set (after player death etc.) recreate the world
         map and reset relevant variables.
         """
-        self.map.initialize()
 
     def cleanup(self):
         """Store background color and sidebar for use in camp menu."""
@@ -34,24 +35,24 @@ class Game(state_machine._State):
         Process game state events. Add and pop directions from the player's
         direction stack as necessary.
         """
-        if self.player.action_state != "dead":
-            if event.type == pg.KEYDOWN:
-                self.player.add_direction(event.key)
-                if not self.world.scrolling:
-                    if event.key == pg.K_SPACE:
-                        self.player.attack()
-                    elif event.key == pg.K_s:
-                        self.change_to_camp()
-                    elif event.key == pg.K_LSHIFT:
-                        self.player.interact(self.world.level.interactables)
-            elif event.type == pg.KEYUP:
-                self.player.pop_direction(event.key)
-
+        pass
+        # if self.player.action_state != "dead":
+        #     if event.type == pg.KEYDOWN:
+        #         self.player.add_direction(event.key)
+        #         if not self.world.scrolling:
+        #             if event.key == pg.K_SPACE:
+        #                 self.player.attack()
+        #             elif event.key == pg.K_s:
+        #                 self.change_to_camp()
+        #             elif event.key == pg.K_LSHIFT:
+        #                 self.player.interact(self.world.level.interactables)
+        #     elif event.type == pg.KEYUP:
+        #         self.player.pop_direction(event.key)
 
     def update(self, keys, now):
         """Update phase for the primary game state."""
-
+        self.map.update()
 
     def draw(self, surface, interpolate):
         """Draw level and sidebar; if player is dead draw death sequence."""
-
+        self.map.draw(surface, interpolate)
