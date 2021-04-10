@@ -1,7 +1,8 @@
 import pygame as pg
 import data.config as config
 from data import colors
-from building, soldier import *
+from data.components.building import *
+from data.components.soldier import *
 
 
 class Tile(pg.sprite.Sprite):

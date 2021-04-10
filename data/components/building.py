@@ -1,5 +1,5 @@
 import pygame as pg
-from soldier import *
+from data.components.soldier import *
 
 
 BUILDING_HEALTH = {
