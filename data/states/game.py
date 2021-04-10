@@ -7,16 +7,16 @@ import math
 import pygame as pg
 
 from data import state_machine, config
-from data.components import map
+from data.components import board
 
 
-class Game(state_machine._State):
+class Game(state_machine.State):
     """Core state for the actual gameplay."""
 
     def __init__(self):
-        state_machine._State.__init__(self)
-        self.map = map.Map()
-        self.map.initialize(config.MAP1)
+        state_machine.State.__init__(self)
+        self.board = board.Board()
+        self.board.initialize(config.MAP1)
 
     def startup(self, now, persistent):
         """
@@ -35,7 +35,6 @@ class Game(state_machine._State):
         Process game state events. Add and pop directions from the player's
         direction stack as necessary.
         """
-        pass
         # if self.player.action_state != "dead":
         #     if event.type == pg.KEYDOWN:
         #         self.player.add_direction(event.key)
@@ -48,11 +47,13 @@ class Game(state_machine._State):
         #                 self.player.interact(self.world.level.interactables)
         #     elif event.type == pg.KEYUP:
         #         self.player.pop_direction(event.key)
+        self.board.handle_event(event)
+
 
     def update(self, keys, now):
         """Update phase for the primary game state."""
-        self.map.update()
+        self.board.update()
 
     def draw(self, surface, interpolate):
         """Draw level and sidebar; if player is dead draw death sequence."""
-        self.map.draw(surface, interpolate)
+        self.board.draw(surface, interpolate)

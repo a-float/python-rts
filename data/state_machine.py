@@ -56,7 +56,7 @@ class StateMachine(object):
         self.state.get_event(event)
 
 
-class _State(object):
+class State(object):
     """
     This is a prototype class for States. All states should inherit from it.
     No direct instances of this class should be created. get_event and update
