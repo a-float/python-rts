@@ -45,3 +45,14 @@ DIRECTIONS = {"up": (0, -1),
 
 TILE_SIZE = 50
 TILE_SPRITE_SIZE = 45
+
+MAP1 =  "..1o..\n"
+MAP1 += "2oooo4\n"
+MAP1 += "..3o..\n"
+
+PLAYER_COLORS = {
+    1: colors.RED,
+    2: colors.BLUE,
+    3: colors.GREEN,
+    4: colors.YELLOW,
+}

@@ -6,7 +6,7 @@ import sys
 import math
 import pygame as pg
 
-from data import state_machine
+from data import state_machine, config
 from data.components import map
 
 
@@ -16,7 +16,7 @@ class Game(state_machine._State):
     def __init__(self):
         state_machine._State.__init__(self)
         self.map = map.Map()
-        self.map.initialize("temp string")
+        self.map.initialize(config.MAP1)
 
     def startup(self, now, persistent):
         """

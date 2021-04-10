@@ -15,17 +15,21 @@ class Tile(pg.sprite.Sprite):
         self.owner = None
         self.building = None
         self.image = pg.Surface((config.TILE_SPRITE_SIZE, config.TILE_SPRITE_SIZE))
-        self.image.fill(colors.RED if self.owner is None else self.owner.color)
+        self.image.fill(colors.LIGHT_GRAY)
         self.rect = self.image.get_rect(topleft=(100, 70))
 
     def build(self, building_name):
         """gets the building object from a dict? and assigns it to itself"""
         pass
 
-    def update(self):
+    def set_owner(self, player):
+        self.owner = player
+        self.image.fill(colors.LIGHT_GRAY if self.owner is None else self.owner.color)
+
+    def update(self):  # is called by the map
         pass
 
-    def draw(self, surface):
+    def draw(self, surface):  # is not called. Don't know why?
         """called by the map"""
         print("tile drawn")
         surface.blit(self.image, self.rect)
@@ -37,5 +41,4 @@ class Tile(pg.sprite.Sprite):
 
     def setup(self, pos, neighbours):
         self.rect.move_ip(pos)
-        print("rect moved", pos)
         self.neighbours = neighbours
