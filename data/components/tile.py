@@ -1,6 +1,7 @@
 import pygame as pg
 import data.config as config
 from data import colors
+from building, soldier import *
 
 
 class Tile(pg.sprite.Sprite):
@@ -23,7 +24,17 @@ class Tile(pg.sprite.Sprite):
 
     def build(self, building_name):
         """gets the building object from a dict? from config? from building.py?"""
-        pass
+        self.building = self.buildings_dict[building_name](neighbours)
+
+    # to jeszcze do poprawy zeby budowac naraz jedna sciezke
+    def build_path(self, building_name, source, target):
+        self.building = Path(source, target)   
+
+    def get_soldier(self):
+        if self.building is not None and isinstance(self.building, (Barracks, Path)):
+            return self.building.soldier
+        else:
+            return None                
 
     def set_owner(self, player):
         self.owner = player
