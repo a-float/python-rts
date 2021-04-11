@@ -59,9 +59,12 @@ TILE_SIZE = 50
 TILE_SPRITE_SIZE = 45
 
 
-MAP1 =  "..1o..\n"
-MAP1 += "o2oooo\n"
-MAP1 += "..oo..\n"
+MAP1 =  "oo..1o..oo\n"
+MAP1 += "4ooooooooo\n"
+MAP1 += "oooooooooo\n"
+MAP1 += "ooooooo...\n"
+MAP1 += "ooooooo3oo\n"
+MAP1 += "o2..oo..oo\n"
 
 
 PLAYER_COLORS = {

@@ -2,7 +2,7 @@ import pygame as pg
 from data.components.soldier import *
 from data import config, colors
 
-BUILDINGS_DATA = {
+BUILDING_DATA = {
   'castle' : {'health' : 1000, 'income' : 5},
   'tower' : {'health' : 200, 'cost' : 200},
   'market' : {'health' : 150, 'cost' : 250},
@@ -12,7 +12,7 @@ BUILDINGS_DATA = {
 UPGRADE_COST = 50
 
 class Building(pg.sprite.Sprite):
-    def __init__(self, neighbour):
+    def __init__(self, tile):
         self.health = 0
         self.cost = 0
         self.attackable = True
@@ -40,8 +40,8 @@ class Building(pg.sprite.Sprite):
     def get_upgrade_types(self):
         return None
 
-    def get_attacked(demage):
-        self.health -= demage 
+    def get_attacked(damage):
+        self.health -= damage 
         if self.health <= 0:
             self.is_destroyed = True   
 
@@ -58,10 +58,11 @@ class Castle(Building):
     def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
         self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
-        self.image.fill(tile.owner.color)
-        self.rect = self.image.get_rect()
-        self.health = BUILDING_DATA['Castle']
-        self.basic_income = BULIDING_DATA['castle']['income'] # TODO make income a static class variable
+        self.image.fill(tuple(map(lambda x: x//2, tile.owner.color)))
+        self.rect = self.image.get_rect(center=tile.rect.center)
+        self.health = BUILDING_DATA['castle']
+        self.tile = tile
+        self.basic_income = BUILDING_DATA['castle']['income'] # TODO make income a static class variable
         self.tile = tile
         self.buildable = False
         
@@ -79,8 +80,8 @@ Neigbours = {
 class Tower(Building):
     def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
-        self.image.fill(colors.PURPLE)
+        self.image = pg.Surface((config.TILE_SIZE//3, config.TILE_SIZE//3))
+        self.image.fill(tuple(map(lambda x: x//2, tile.owner.color)))
         self.tile = tile
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.neighbours = tile.neighbours
@@ -95,7 +96,7 @@ class Tower(Building):
             2 : 2
         }
         self.timer = 0
-        self.demage = 50
+        self.damage = 50
 
     def passive(self, player):
         if timer > 0:
@@ -105,7 +106,7 @@ class Tower(Building):
                 # attacks first soldier found
                 soldier = neighbour.get_soldier()
                 if soldier is not None:
-                    soldier.get_attacked(self.demage)
+                    soldier.get_attacked(self.damage)
                     self.timer = self.type_reload_time[self.type]
                     break     
         
@@ -143,7 +144,7 @@ class Barracks(Building):
         self.rect = self.image.get_rect()
 
         self.neighbours = neighbours
-        self.soldier_demage = 20
+        self.soldier_damage = 20
         self.soldier_health = 50
         self.soldier = None
         self.path = None
@@ -154,7 +155,7 @@ class Barracks(Building):
             'swords' : 1,
             'shields' : 2
         }
-        self.type_soldier_demage = {
+        self.type_soldier_damage = {
             0 : 20,
             1 : 40,
             2 : 20
@@ -174,7 +175,7 @@ class Barracks(Building):
     def active(self, player):
         if player.gold >= self.soldier_cost and len(self.soldier_queue) < 5:
             player.gold -= self.soldier_cost
-            dmg = self.type_soldier_demage[self.type]
+            dmg = self.type_soldier_damage[self.type]
             hp = self.type_soldier_health[self.type]
             self.soldier_queue.append(Soldier(hp, dmg))
 

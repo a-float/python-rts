@@ -32,6 +32,7 @@ class Board:
         offset_x = config.WIDTH/2 - self.board_size[0]*config.TILE_SIZE//2
         offset_y = config.HEIGHT / 2 - self.board_size[1] * config.TILE_SIZE // 2
 
+        castle_tiles = []
         rows = board_string.split('\n')[:-1]  # remove the last empty row
         for y, row in enumerate(rows):
             if len(row) != self.board_size[0]:
@@ -40,12 +41,17 @@ class Board:
                 if char != '.':
                     new_tile = Tile((offset_x+x * config.TILE_SIZE, offset_y+y*config.TILE_SIZE))
                     if char in ['1', '2', '3', '4']: # TODO check if each of the numbers appears once
-                        new_tile.set_owner(self.create_player(int(char), new_tile))
+                        new_tile.owner = self.create_player(int(char), new_tile)
+                        castle_tiles.append(new_tile) # castles are bulid after the neighbours are set
                     self.tiles[(x, y)] = new_tile
 
         for pos, tile in self.tiles.items():
             tile.set_neighbours(self._find_neighbours(pos))
         self.tile_group.add(*self.tiles.values())
+
+        for tile in castle_tiles:
+            self.build_on_tile(tile, 'castle')
+
 
     def get_tile(self, tile_pos):
         return self.tiles.get(tile_pos, None)
@@ -62,7 +68,9 @@ class Board:
         return self.players.get(player_no, None)
 
     def build_on_tile(self, tile, builiding_name):
-        self.building_group.add(tile.build(builiding_name))
+        new_building = tile.build(builiding_name)
+        if new_building is not None:
+            self.building_group.add(new_building)
 
     def handle_event(self, event):
         for p in self.players.values():

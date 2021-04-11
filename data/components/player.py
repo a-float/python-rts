@@ -13,6 +13,7 @@ class Player:
         self.gold = 0
         self.income = 5
         self.tile = tile
+        self.id = player_no
         self.color = config.PLAYER_COLORS[player_no]
         self.marker = PlayerMarker(self.color, tile.rect.center)
         self.board = board
@@ -26,8 +27,11 @@ class Player:
             if event.key in self.controls.keys():
                 command = self.controls[event.key]
                 if command == 'action':
-                    print("Player has performed an action")
-                    self.board.build_on_tile(self.tile, 'tower')
+                    # print("Player has performed an action")
+                    if self.tile.owner == self and self.tile.building is None:
+                        self.board.build_on_tile(self.tile, 'tower')
+                    else:
+                        print(f"Player {self.id} can't place buildings on this tile!")
                 else:  # it is a movement command
                     if self.tile.neighbours[command] is not None:
                         self.tile = self.tile.neighbours[command]
