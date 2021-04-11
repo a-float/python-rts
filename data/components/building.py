@@ -3,23 +3,25 @@ from data.components.soldier import *
 from data import config, colors
 
 BUILDING_DATA = {
-  'castle' : {'health' : 1000, 'income' : 5},
-  'tower' : {'health' : 200, 'cost' : 200},
-  'market' : {'health' : 150, 'cost' : 250},
-  'path' : {'health' : 50, 'cost' : 20}
+    'castle': {'health': 1000, 'income': 5},
+    'tower': {'health': 200, 'cost': 200},
+    'market': {'health': 150, 'cost': 250},
+    'path': {'health': 50, 'cost': 20}
 }
 
 UPGRADE_COST = 50
+
 
 class Building(pg.sprite.Sprite):
     def __init__(self, tile):
         self.health = 0
         self.cost = 0
-        self.attackable = True
+        self.can_be_attacked = True
         self.buildable = True
         self.is_destroyed = False
         self.last_action_time = 0
         self.delay = 1
+        self.tile = tile
 
     def timer(self, now, player):
         if self.last_action_time <= now - self.delay * 1000:
@@ -28,8 +30,8 @@ class Building(pg.sprite.Sprite):
 
     def passive(self, player):
         # It is called every iteration
-        pass  
-    
+        pass
+
     def active(self, player):
         # It is called whenever action button is pressed on this field
         pass
@@ -40,35 +42,37 @@ class Building(pg.sprite.Sprite):
     def get_upgrade_types(self):
         return None
 
-    def get_attacked(damage):
-        self.health -= damage 
+    def get_attacked(self, damage):
+        self.health -= damage
         if self.health <= 0:
-            self.is_destroyed = True   
+            self.is_destroyed = True
 
     @staticmethod
     def to_dict():
         return {
-                'Tower' : Tower,
-                'Barracks' : Barracks,
-                'Market' : Market,
-                } 
+            'Tower': Tower,
+            'Barracks': Barracks,
+            'Market': Market,
+        }
 
 
 class Castle(Building):
     def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
-        self.image.fill(tuple(map(lambda x: x//2, tile.owner.color)))
+        super().__init__(tile)
+        self.image = pg.Surface((config.TILE_SIZE // 2, config.TILE_SIZE // 2))
+        self.image.fill(tuple(map(lambda x: x // 2, tile.owner.color)))
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.health = BUILDING_DATA['castle']
         self.tile = tile
-        self.basic_income = BUILDING_DATA['castle']['income'] # TODO make income a static class variable
+        self.basic_income = BUILDING_DATA['castle']['income']  # TODO make income a static class variable
         self.tile = tile
         self.buildable = False
-        
+
     def passive(self, player):
         player.gold += self.basic_income
-         
+
+
 """
 Neigbours = {
     'up' = up_neighbour (type_of_tile)
@@ -77,39 +81,41 @@ Neigbours = {
 }
 """
 
+
 class Tower(Building):
     def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((config.TILE_SIZE//3, config.TILE_SIZE//3))
-        self.image.fill(tuple(map(lambda x: x//2, tile.owner.color)))
+        super().__init__(tile)
+        self.image = pg.Surface((config.TILE_SIZE // 3, config.TILE_SIZE // 3))
+        self.image.fill(tuple(map(lambda x: x // 2, tile.owner.color)))
         self.tile = tile
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.neighbours = tile.neighbours
         self.type = 0
         self.upgrade_types = {
-            'sniper' : 1,
-            'magic' : 2
+            'sniper': 1,
+            'magic': 2
         }
         self.type_reload_time = {
-            0 : 4,
-            1 : 4,
-            2 : 2
+            0: 4,
+            1: 4,
+            2: 2
         }
         self.timer = 0
         self.damage = 50
 
     def passive(self, player):
-        if timer > 0:
-            timer -= 1
-        else: 
-           for neigh in neighbours:
+        if self.timer > 0:
+            self.timer -= 1
+        else:
+            for neigh in self.neighbours:
                 # attacks first soldier found
-                soldier = neighbour.get_soldier()
+                soldier = neigh.get_soldier()
                 if soldier is not None:
                     soldier.get_attacked(self.damage)
                     self.timer = self.type_reload_time[self.type]
-                    break     
-        
+                    break
+
     def get_upgrade_types(self):
         return list(self.upgrade_types.keys()) if self.type == 0 else None
 
@@ -117,33 +123,34 @@ class Tower(Building):
         if self.upgrade_types[upgrade_type] == 1:
             self.type = 1
             if self.neighbours['up'] is not None:
-                neigh = self.addneighbours['up'].neighbours['up']
+                neigh = self.neighbours['up'].neighbours['up']
                 if neigh is not None:
                     self.neighbours['up_up'] = neigh
             if self.neighbours['right'] is not None:
-                neigh = self.addneighbours['right'].neighbours['right']
+                neigh = self.neighbours['right'].neighbours['right']
                 if neigh is not None:
                     self.neighbours['right_right'] = neigh
             if self.neighbours['down'] is not None:
-                neigh = self.addneighbours['down'].neighbours['down']
+                neigh = self.neighbours['down'].neighbours['down']
                 if neigh is not None:
                     self.neighbours['down_down'] = neigh
             if self.neighbours['left'] is not None:
-                neigh = self.addneighbours['left'].neighbours['left']
+                neigh = self.neighbours['left'].neighbours['left']
                 if neigh is not None:
-                    self.neighbours['left_left'] = neigh 
+                    self.neighbours['left_left'] = neigh
         if self.upgrade_types[upgrade_type] == 2:
-            self.type = 2                                      
+            self.type = 2
 
-            
+
 class Barracks(Building):
-    def __init__(self, neighbours):
+    def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
-        self.image.fill(colors.YELLOW)
-        self.rect = self.image.get_rect()
+        super().__init__(tile)
+        self.image = pg.Surface((config.TILE_SIZE // 3, config.TILE_SIZE // 3))
+        self.image.fill(tuple(map(lambda x: x // 2, colors.YELLOW)))
+        self.rect = self.image.get_rect(center=tile.rect.center)
 
-        self.neighbours = neighbours
+        self.neighbours = tile.neighbours
         self.soldier_damage = 20
         self.soldier_health = 50
         self.soldier = None
@@ -152,18 +159,18 @@ class Barracks(Building):
         self.type = 0
         self.soldier_cost = 50
         self.upgrade_types = {
-            'swords' : 1,
-            'shields' : 2
+            'swords': 1,
+            'shields': 2
         }
         self.type_soldier_damage = {
-            0 : 20,
-            1 : 40,
-            2 : 20
+            0: 20,
+            1: 40,
+            2: 20
         }
         self.type_soldier_health = {
-            0 : 50,
-            1 : 50,
-            2 : 100
+            0: 50,
+            1: 50,
+            2: 100
         }
 
     def passive(self, player):
@@ -181,44 +188,45 @@ class Barracks(Building):
 
     def get_upgrade_types(self):
         return list(self.upgrade_types.keys()) if self.type == 0 else None
-    
+
     def upgrade(self, upgrade_type):
         self.type = self.get_upgrade_types[upgrade_type]
 
-    #TODO dodac funkcje usuwania sciezek przy niszczeniu koszar         
+    # TODO dodac funkcje usuwania sciezek przy niszczeniu koszar
+
 
 class Market(Building):
-    def __init__(self, neighbours):
+    def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
-        self.image.fill(colors.CYAN)
-        self.rect = self.image.get_rect()
+        self.image = pg.Surface((config.TILE_SIZE // 3, config.TILE_SIZE // 3))
+        self.image.fill(tuple(map(lambda x: x // 2, colors.CYAN)))
+        self.rect = self.image.get_rect(center=tile.rect.center)
         self.type = 0
         self.timer = 0
         self.upgrade_types = {
-            'mine' : 1,
-            'bank' : 2
+            'mine': 1,
+            'bank': 2
         }
-        self.type_income = { # TODO get type_income from BUILIDING_DATA dict
-            0 : 1,
-            1 : 2,
-            2 : 13
+        self.type_income = {  # TODO get type_income from BUILIDING_DATA dict
+            0: 1,
+            1: 2,
+            2: 13
         }
-        self.type_frequency = { # TODO maybe this as well 
-            0 : 0,
-            1 : 0,
-            2 : 4
+        self.type_frequency = {  # TODO maybe this as well
+            0: 0,
+            1: 0,
+            2: 4
         }
 
     def passive(self, player):
-        if timer > 0:
-            timer -= 1
+        if self.timer > 0:
+            self.timer -= 1
         else:
             player.gold += self.type_income[self.type]
             timer = self.type_frequency[self.type]
 
     def get_upgrade_types(self):
-        return lsit(self.upgrade_types.keys()) if self.type == 0 else None
+        return list(self.upgrade_types.keys()) if self.type == 0 else None
 
     def upgrade(self, upgrade_type):
         self.type = self.upgrade_types[upgrade_type]
@@ -230,17 +238,17 @@ class Path(Building):
         self.source = source
         self.target = target
         self.soldier = None
-        self.attackable = False
+        self.can_be_attacked = False
         self.is_active = False
 
     def activate_to_source(self):
-         self.is_active = True
-         if isinstance(self.source, Path):
-            self.source.activate_to_source()     
+        self.is_active = True
+        if isinstance(self.source, Path):
+            self.source.activate_to_source()
 
     def move_soldiers(self):
         if isinstance(self.target, Path):
-                self.target.move_soldiers()
+            self.target.move_soldiers()
         if self.is_active and self.soldier is None and self.source.soldier is not None:
             self.soldier = self.source.soldier
             self.source.soldier = None
@@ -251,8 +259,9 @@ class Path(Building):
 
 
 BUILDINGS = {
-    'castle' : Castle,
-    'tower' : Tower,
-    'market' : Market,
-    'path' : Path
+    'castle': Castle,
+    'tower': Tower,
+    'barracks': Barracks,
+    'market': Market,
+    'path': Path
 }

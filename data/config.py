@@ -26,13 +26,23 @@ DEFAULT_CONTROLS_1 = {pg.K_DOWN: "down",
                       pg.K_UP: "up",
                       pg.K_LEFT: "left",
                       pg.K_RIGHT: "right",
-                      pg.K_RETURN: "action"}
+                      pg.K_RETURN: "action",
+                      pg.K_i: "barracks",
+                      pg.K_o: "market",
+                      pg.K_p: "tower",
+                      pg.K_l: "upgrade"
+                      }
 
 DEFAULT_CONTROLS_2 = {pg.K_s: "down",
                       pg.K_w: "up",
                       pg.K_a: "left",
                       pg.K_d: "right",
-                      pg.K_SPACE: "action"}
+                      pg.K_SPACE: "action",
+                      pg.K_q: "barracks",
+                      pg.K_e: "market",
+                      pg.K_r: "tower",
+                      pg.K_f: "upgrade"
+                      }
 
 CONTROLS = {
     1: DEFAULT_CONTROLS_1,

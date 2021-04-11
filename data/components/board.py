@@ -52,7 +52,6 @@ class Board:
         for tile in castle_tiles:
             self.build_on_tile(tile, 'castle')
 
-
     def get_tile(self, tile_pos):
         return self.tiles.get(tile_pos, None)
 

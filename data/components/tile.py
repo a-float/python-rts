@@ -27,7 +27,7 @@ class Tile(pg.sprite.Sprite):
     def build(self, building_name):
         """gets the building object from a dict? from config? from building.py?"""
         self.building = building.BUILDINGS[building_name](self)
-        
+
         self.increase_ownership(self.owner)
         self.update_owner()
 
@@ -47,13 +47,13 @@ class Tile(pg.sprite.Sprite):
 
     # to jeszcze do poprawy zeby budowac naraz jedna sciezke
     def build_path(self, building_name, source, target):
-        self.building = Path(source, target)   
+        self.building = building.Path(source, target)
 
     def get_soldier(self):
         if self.building is not None and isinstance(self.building, (Barracks, Path)):
             return self.building.soldier
         else:
-            return None                
+            return None
 
     def increase_ownership(self, player):
         self.ownership[player] = self.ownership.get(player, 0) + 1
@@ -64,15 +64,14 @@ class Tile(pg.sprite.Sprite):
             self.ownership.remove(player)
 
     def update_owner(self):
-        if self.building is None: 
+        if self.building is None:
             ranking = sorted(list(self.ownership.items()), key=lambda x: -x[1])
             # if no one has ownership the tile belongs to noone
             if ranking[0][1] == 0:
-                self.owner = None 
+                self.owner = None
             else:
                 self.owner = ranking[0][0]
         self.image.fill(colors.LIGHT_GRAY if self.owner is None else self.owner.color)
-
 
     def update(self):  # is called by the map
         pass

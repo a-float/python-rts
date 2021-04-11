@@ -26,10 +26,31 @@ class Player:
                 return
             if event.key in self.controls.keys():
                 command = self.controls[event.key]
+
                 if command == 'action':
                     # print("Player has performed an action")
                     if self.tile.owner == self and self.tile.building is None:
+                        print("Performs action")
+                    else:
+                        print(f"Player {self.id} doesn't have building on this tile!")
+                elif command == 'upgrade':
+                    if self.tile.owner == self and self.tile.building is not None:
+                        print(self.tile.building.get_upgrade_types())
+                    else:
+                        print(f"Player {self.id} doesn't have building on this tile!")
+                elif command == 'tower':
+                    if self.tile.owner == self and self.tile.building is None:
                         self.board.build_on_tile(self.tile, 'tower')
+                    else:
+                        print(f"Player {self.id} can't place buildings on this tile!")
+                elif command == 'barracks':
+                    if self.tile.owner == self and self.tile.building is None:
+                        self.board.build_on_tile(self.tile, 'barracks')
+                    else:
+                        print(f"Player {self.id} can't place buildings on this tile!")
+                elif command == 'market':
+                    if self.tile.owner == self and self.tile.building is None:
+                        self.board.build_on_tile(self.tile, 'market')
                     else:
                         print(f"Player {self.id} can't place buildings on this tile!")
                 else:  # it is a movement command
