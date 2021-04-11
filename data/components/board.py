@@ -9,6 +9,7 @@ class Board:
 
     def __init__(self):
         self.tile_group = pg.sprite.Group()
+        self.building_group = pg.sprite.Group()
         self.tiles = {}
         self.board_size = None
         self.players = {}
@@ -60,6 +61,9 @@ class Board:
     def get_player(self, player_no):
         return self.players.get(player_no, None)
 
+    def build_on_tile(self, tile, builiding_name):
+        self.building_group.add(tile.build(builiding_name))
+
     def handle_event(self, event):
         for p in self.players.values():
             p.handle_event(event)
@@ -70,5 +74,6 @@ class Board:
     def draw(self, surface, interpolate):
         surface.fill(colors.WHITE)
         for p in self.players.values():
-            p.marker.draw(surface)
+            p.draw(surface)
         self.tile_group.draw(surface)
+        self.building_group.draw(surface)

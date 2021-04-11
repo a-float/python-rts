@@ -1,20 +1,12 @@
 import pygame as pg
 from data.components.soldier import *
+from data import config, colors
 
-
-BUILDING_HEALTH = {
-    'Castle' : 1000,
-    'Tower' : 200,
-    'Barracks' : 200,
-    'Market' : 150,
-    'Path' : 50
-}
-
-BUILDING_COST = {
-    'Tower' : 200,
-    'Barracks' : 200,
-    'Market' : 250,
-    'Path' : 20
+BUILDINGS_DATA = {
+  'castle' : {'health' : 1000, 'income' : 5},
+  'tower' : {'health' : 200, 'cost' : 200},
+  'market' : {'health' : 150, 'cost' : 250},
+  'path' : {'health' : 50, 'cost' : 20}
 }
 
 UPGRADE_COST = 50
@@ -50,7 +42,7 @@ class Building(pg.sprite.Sprite):
 
     def get_attacked(demage):
         self.health -= demage 
-        if self.health < 0:
+        if self.health <= 0:
             self.is_destroyed = True   
 
     @staticmethod
@@ -63,13 +55,16 @@ class Building(pg.sprite.Sprite):
 
 
 class Castle(Building):
-    def __init__(self, basic_income=5):
+    def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
-        self.health = BUILDING_HEALTH['Castle']
-        self.cost = BUILDING_COST['Castle']
-        self.basic_income = basic_income
+        self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
+        self.image.fill(tile.owner.color)
+        self.rect = self.image.get_rect()
+        self.health = BUILDING_DATA['Castle']
+        self.basic_income = BULIDING_DATA['castle']['income'] # TODO make income a static class variable
+        self.tile = tile
         self.buildable = False
-
+        
     def passive(self, player):
         player.gold += self.basic_income
          
@@ -82,9 +77,13 @@ Neigbours = {
 """
 
 class Tower(Building):
-    def __init__(self, neighbours):
+    def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
-        self.neighbours = neighbours
+        self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
+        self.image.fill(colors.PURPLE)
+        self.tile = tile
+        self.rect = self.image.get_rect(center=tile.rect.center)
+        self.neighbours = tile.neighbours
         self.type = 0
         self.upgrade_types = {
             'sniper' : 1,
@@ -139,6 +138,10 @@ class Tower(Building):
 class Barracks(Building):
     def __init__(self, neighbours):
         pg.sprite.Sprite.__init__(self)
+        self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
+        self.image.fill(colors.YELLOW)
+        self.rect = self.image.get_rect()
+
         self.neighbours = neighbours
         self.soldier_demage = 20
         self.soldier_health = 50
@@ -160,7 +163,7 @@ class Barracks(Building):
             0 : 50,
             1 : 50,
             2 : 100
-        }    
+        }
 
     def passive(self, player):
         if self.path is not None:
@@ -186,18 +189,21 @@ class Barracks(Building):
 class Market(Building):
     def __init__(self, neighbours):
         pg.sprite.Sprite.__init__(self)
+        self.image = pg.Surface((config.TILE_SIZE//2, config.TILE_SIZE//2))
+        self.image.fill(colors.CYAN)
+        self.rect = self.image.get_rect()
         self.type = 0
         self.timer = 0
         self.upgrade_types = {
             'mine' : 1,
             'bank' : 2
         }
-        self.type_income = {
+        self.type_income = { # TODO get type_income from BUILIDING_DATA dict
             0 : 1,
             1 : 2,
             2 : 13
         }
-        self.type_frequency = {
+        self.type_frequency = { # TODO maybe this as well 
             0 : 0,
             1 : 0,
             2 : 4
@@ -243,7 +249,9 @@ class Path(Building):
             self.soldier.attacks(self.target)
 
 
-
-
-
-
+BUILDINGS = {
+    'castle' : Castle,
+    'tower' : Tower,
+    'market' : Market,
+    'path' : Path
+}

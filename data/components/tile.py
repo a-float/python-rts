@@ -1,7 +1,7 @@
 import pygame as pg
 import data.config as config
 from data import colors
-from data.components.building import *
+from data.components import building
 from data.components.soldier import *
 
 
@@ -25,7 +25,8 @@ class Tile(pg.sprite.Sprite):
 
     def build(self, building_name):
         """gets the building object from a dict? from config? from building.py?"""
-        self.building = self.buildings_dict[building_name](neighbours)
+        self.building = building.BUILDINGS[building_name](self)
+        return self.building
 
     # to jeszcze do poprawy zeby budowac naraz jedna sciezke
     def build_path(self, building_name, source, target):
@@ -48,8 +49,3 @@ class Tile(pg.sprite.Sprite):
 
     def update(self):  # is called by the map
         pass
-
-    def draw(self, surface):  # is not called. Don't know why?
-        """called by the map"""
-        print("tile drawn")
-        surface.blit(self.image, self.rect)

@@ -1,5 +1,6 @@
 import pygame as pg
 from . import colors
+from data.components import building
 
 pg.init()  # its here to start loading everything up asap
 
@@ -25,19 +26,23 @@ DEFAULT_CONTROLS_1 = {pg.K_DOWN: "down",
                       pg.K_UP: "up",
                       pg.K_LEFT: "left",
                       pg.K_RIGHT: "right",
-                      pg.K_SPACE: "action"}
+                      pg.K_RETURN: "action"}
 
 DEFAULT_CONTROLS_2 = {pg.K_s: "down",
                       pg.K_w: "up",
                       pg.K_a: "left",
                       pg.K_d: "right",
-                      pg.K_RETURN: "action"}
+                      pg.K_SPACE: "action"}
 
 CONTROLS = {
     1: DEFAULT_CONTROLS_1,
     2: DEFAULT_CONTROLS_2,
     3: None,
     4: None
+}
+INCOME = {
+  'castle' : 5,
+  'market' : 5
 }
 
 DIRECTIONS = {"up": (0, -1),
@@ -53,9 +58,11 @@ DIRECTIONS = {"up": (0, -1),
 TILE_SIZE = 50
 TILE_SPRITE_SIZE = 45
 
+
 MAP1 =  "..1o..\n"
 MAP1 += "o2oooo\n"
 MAP1 += "..oo..\n"
+
 
 PLAYER_COLORS = {
     1: colors.RED,

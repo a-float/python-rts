@@ -27,10 +27,14 @@ class Player:
                 command = self.controls[event.key]
                 if command == 'action':
                     print("Player has performed an action")
+                    self.board.build_on_tile(self.tile, 'tower')
                 else:  # it is a movement command
                     if self.tile.neighbours[command] is not None:
                         self.tile = self.tile.neighbours[command]
                         self.marker.set_position(self.tile.rect.center)
+    
+    def draw(self, surface):
+        surface.blit(self.marker.image, self.marker.rect)
 
 
 class PlayerMarker(pg.sprite.Sprite):
@@ -41,9 +45,6 @@ class PlayerMarker(pg.sprite.Sprite):
         self.image.fill(color)
         self.image.set_alpha(150)  # applies soma alpha
         self.rect = self.image.get_rect(center=tile_center)
-
-    def draw(self, surface):
-        surface.blit(self.image, self.rect)
 
     def set_position(self, new_center):
         self.rect.center = new_center
