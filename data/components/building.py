@@ -151,6 +151,7 @@ class Barracks(Building):
         self.rect = self.image.get_rect(center=tile.rect.center)
 
         self.neighbours = tile.neighbours
+        self.tile = tile
         self.soldier_damage = 20
         self.soldier_health = 50
         self.soldier = None
@@ -158,6 +159,7 @@ class Barracks(Building):
         self.soldier_queue = []
         self.type = 0
         self.soldier_cost = 50
+        self.path_queue = []
         self.upgrade_types = {
             'swords': 1,
             'shields': 2
@@ -185,12 +187,47 @@ class Barracks(Building):
             dmg = self.type_soldier_damage[self.type]
             hp = self.type_soldier_health[self.type]
             self.soldier_queue.append(Soldier(hp, dmg))
+        else:
+            print(f"Player {player.id} can't train new soldier!")
+
+    def build_path(self):
+        self.tile.building_path = True
+        print("Building path started")
+
+    def add_to_queue(self, direction):
+        self.path_queue.append(direction)
+
+    def finish_building(self, player, cancel=False):
+        if cancel:
+            self.path_queue = []
+            print("Path building cancelled")
+        else:
+            actual_tile = self.tile
+            path_len = len(self.path_queue)
+            for i, command in enumerate(self.path_queue):
+                next_tile = actual_tile.neighbours[command]
+                can_build, potentially_end = next_tile.can_build_path_here(player)
+                if not can_build:
+                    self.finish_building(player, cancel=True)
+                    break
+                elif not potentially_end and not i + 1 == path_len:
+                    next_tile.paths[player.id] = Path(actual_tile, next_tile.neighbours[self.path_queue[i + 1]])
+                    actual_tile = next_tile
+                elif potentially_end and i + 1 == path_len:
+                    self.path_queue = []
+                    print("building path ended successfully")
+                else:
+                    self.finish_building(player, cancel=True)
+                    break
+
+        self.tile.building_path = False
+
 
     def get_upgrade_types(self):
         return list(self.upgrade_types.keys()) if self.type == 0 else None
 
     def upgrade(self, upgrade_type):
-        self.type = self.get_upgrade_types[upgrade_type]
+        self.type = self.upgrade_types[upgrade_type]
 
     # TODO dodac funkcje usuwania sciezek przy niszczeniu koszar
 
@@ -254,7 +291,7 @@ class Path(Building):
             self.source.soldier = None
 
     def passive(self, player):
-        if isinstance(self.target, Building) and not isinstance(self.target, Path) and soldier is not None:
+        if isinstance(self.target, Building) and not isinstance(self.target, Path) and self.soldier is not None:
             self.soldier.attacks(self.target)
 
 

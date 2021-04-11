@@ -16,10 +16,17 @@ class Tile(pg.sprite.Sprite):
         self.neighbours = {}  # a dict passed by the map
         self.owner = None
         self.building = None
+        self.paths = {
+            0: None,
+            1: None,
+            2: None,
+            3: None
+        }
         self.image = pg.Surface((config.TILE_SPRITE_SIZE, config.TILE_SPRITE_SIZE))
         self.image.fill(colors.LIGHT_GRAY)
         self.ownership = {}
         self.rect = self.image.get_rect(topleft=pos)
+        self.building_path = False
 
     def set_neighbours(self, neighbours):
         self.neighbours = neighbours
@@ -49,8 +56,25 @@ class Tile(pg.sprite.Sprite):
     def build_path(self, building_name, source, target):
         self.building = building.Path(source, target)
 
+    def can_build_path_here(self, player): # returns (can_build, is_potentially_end)
+        if self.paths[player.id] is None:  # for now none of player's path can cross
+            if self.owner == player.id:
+                if self.building is not None: # TODO dunno if ok owner == id
+                    return False, False
+                else:
+                    return True, False
+            else:
+                if self.building is not None:
+                    return True, True
+                else:
+                    return True, False
+        else:
+            return False, False
+
+
+
     def get_soldier(self):
-        if self.building is not None and isinstance(self.building, (Barracks, Path)):
+        if self.building is not None and isinstance(self.building, (building.Barracks, building.Path)):
             return self.building.soldier
         else:
             return None

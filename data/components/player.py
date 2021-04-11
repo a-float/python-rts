@@ -1,6 +1,7 @@
 import pygame as pg
 from data.colors import *
 import data.config as config
+from data.components.building import Barracks
 
 
 class Player:
@@ -27,7 +28,10 @@ class Player:
             if event.key in self.controls.keys():
                 command = self.controls[event.key]
 
-                if command == 'action':
+                if self.tile.building_path:
+                    self.build_path(command)
+
+                elif command == 'action':
                     # print("Player has performed an action")
                     if self.tile.owner == self and self.tile.building is None:
                         print("Performs action")
@@ -38,6 +42,12 @@ class Player:
                         print(self.tile.building.get_upgrade_types())
                     else:
                         print(f"Player {self.id} doesn't have building on this tile!")
+                elif command == 'build_path':
+                    if self.tile.owner == self and self.tile.building is not None \
+                            and isinstance(self.tile.building, Barracks):
+                        self.tile.building.build_path()
+                    else:
+                        print(f"Player {self.id} can't start building path on this tile!")
                 elif command == 'tower':
                     if self.tile.owner == self and self.tile.building is None:
                         self.board.build_on_tile(self.tile, 'tower')
@@ -57,6 +67,15 @@ class Player:
                     if self.tile.neighbours[command] is not None:
                         self.tile = self.tile.neighbours[command]
                         self.marker.set_position(self.tile.rect.center)
+
+    def build_path(self, command):
+        if command in {'up', 'right', 'left', 'down'}:
+            self.tile.building.add_to_queue(command)
+        elif command == 'action':
+            self.tile.building.finish_building(self)
+        elif command == 'upgrade': # upgrade command is default command for canceling building path
+            self.tile.building.finish_building(self, cancel=True)
+
     
     def draw(self, surface):
         surface.blit(self.marker.image, self.marker.rect)

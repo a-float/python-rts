@@ -30,7 +30,8 @@ DEFAULT_CONTROLS_1 = {pg.K_DOWN: "down",
                       pg.K_i: "barracks",
                       pg.K_o: "market",
                       pg.K_p: "tower",
-                      pg.K_l: "upgrade"
+                      pg.K_l: "upgrade",
+                      pg.K_k: "build_path"
                       }
 
 DEFAULT_CONTROLS_2 = {pg.K_s: "down",
@@ -41,7 +42,8 @@ DEFAULT_CONTROLS_2 = {pg.K_s: "down",
                       pg.K_q: "barracks",
                       pg.K_e: "market",
                       pg.K_r: "tower",
-                      pg.K_f: "upgrade"
+                      pg.K_f: "upgrade",
+                      pg.K_g: "build_path"
                       }
 
 CONTROLS = {
