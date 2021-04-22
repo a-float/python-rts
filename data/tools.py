@@ -8,7 +8,7 @@ import pygame as pg
 
 from data import state_machine
 
-TIME_PER_UPDATE = 16.0  #Milliseconds
+TIME_PER_UPDATE = 16.0  # Milliseconds
 
 
 class Control(object):
@@ -72,7 +72,7 @@ class Control(object):
             pg.display.set_caption(with_fps)
 
     def main(self):
-        """Main loop for entire program. Uses a constant timestep."""
+        """Main loop for entire program. Uses a constant timestamp."""
         lag = 0.0
         while not self.done:
             lag += self.clock.tick(self.fps)

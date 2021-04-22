@@ -84,8 +84,8 @@ class Tile(pg.sprite.Sprite):
 
     def decrease_ownership(self, player):
         self.ownership[player] -= 1
-        if self.ownership[player] == 0:
-            self.ownership.remove(player)
+        # if self.ownership[player] == 0:
+        #     del self.ownership[player]
 
     def update_owner(self):
         if self.building is None:

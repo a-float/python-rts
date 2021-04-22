@@ -22,6 +22,8 @@ class Building(pg.sprite.Sprite):
         self.last_action_time = 0
         self.delay = 1
         self.tile = tile
+        self.image = None
+        self.rect = None
 
     def timer(self, now, player):
         if self.last_action_time <= now - self.delay * 1000:

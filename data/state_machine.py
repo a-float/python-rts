@@ -26,7 +26,7 @@ class StateMachine(object):
     def update(self, keys, now):
         """
         Checks if a state is done or has called for a game quit.
-        State is flipped if neccessary and State.update is called.
+        State is flipped if necessary and State.update is called.
         """
         self.now = now
         if self.state.quit:
