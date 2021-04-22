@@ -27,7 +27,7 @@ class Board:
     def initialize(self, board_string):
         """ reads the shape of the map from the file for example """
         self.board_size = (board_string.find('\n'), board_string.count('\n'))
-        print("The board size is:", self.board_size)
+        # print("The board size is:", self.board_size)
         # figure out where to draw the tiles to center them in the window
         offset_x = config.WIDTH/2 - self.board_size[0]*config.TILE_SIZE//2
         offset_y = config.HEIGHT / 2 - self.board_size[1] * config.TILE_SIZE // 2
@@ -78,8 +78,13 @@ class Board:
     def update(self):
         self.tile_group.update()
 
+    def clear(self):
+        self.players = {}
+        self.tiles = {}
+        self.tile_group.empty()
+        self.building_group.empty()
+
     def draw(self, surface, interpolate):
-        surface.fill(colors.WHITE)
         for p in self.players.values():
             p.draw(surface)
         self.tile_group.draw(surface)

@@ -8,12 +8,17 @@ WIDTH, HEIGHT = (600, 400)
 SCREEN_SIZE = (WIDTH, HEIGHT)
 SCREEN_RECT = pg.Rect((0, 0), SCREEN_SIZE)
 _screen = pg.display.set_mode(SCREEN_SIZE)
+BACKGROUND_COLOR = colors.LIGHT_GRAY
+COLOR_KEY = (255, 0, 255)  # treated as alpha - bright purple
 
 # Display until loading finishes.
-FONT = pg.font.SysFont("comicsansms", 100)
+FONT_BIG = pg.font.SysFont("comicsansms", 100)
+FONT_MED = pg.font.SysFont("comicsansms", 50)
+FONT_SMALL = pg.font.SysFont("comicsansms", 20)
+FONT_TINY = pg.font.SysFont("comicsansms", 15)
 
 _screen.fill(colors.BLUE)
-_render = FONT.render("LOADING...", True, pg.Color("white"))
+_render = FONT_BIG.render("LOADING...", True, pg.Color("white"))
 _screen.blit(_render, _render.get_rect(center=SCREEN_RECT.center))
 pg.display.update()
 
@@ -53,8 +58,8 @@ CONTROLS = {
     4: None
 }
 INCOME = {
-  'castle' : 5,
-  'market' : 5
+    'castle': 5,
+    'market': 5
 }
 
 DIRECTIONS = {"up": (0, -1),
@@ -70,14 +75,29 @@ DIRECTIONS = {"up": (0, -1),
 TILE_SIZE = 50
 TILE_SPRITE_SIZE = 45
 
-
-MAP1 =  "oo..1o..oo\n"
-MAP1 += "4ooooooooo\n"
-MAP1 += "oooooooooo\n"
-MAP1 += "ooooooo...\n"
-MAP1 += "ooooooo3oo\n"
-MAP1 += "o2..oo..oo\n"
-
+MAPS = {
+  "Big Rumble": "\
+oo..1o..oo\n\
+4ooooooooo\n\
+oooooooooo\n\
+ooooooo...\n\
+ooooooo3oo\n\
+o2..oo..oo\n\
+"
+,"Small Rumble": "\
+oo..0o..o4\n\
+1ooooooooo\n\
+ooooooo3oo\n\
+oo2oooo...\n\
+"
+, 'Canions': "\
+1oooo.oooo2\n\
+ooooo.ooooo\n\
+...ooooo...\n\
+ooooooooooo\n\
+3oooo.oooo4\n\
+"
+}
 
 PLAYER_COLORS = {
     1: colors.RED,

@@ -22,6 +22,7 @@ class StateMachine(object):
         self.state_dict = state_dict
         self.state_name = start_state
         self.state = self.state_dict[self.state_name]
+        self.state.startup(self.now, None)
 
     def update(self, keys, now):
         """
@@ -43,8 +44,9 @@ class StateMachine(object):
         When a State changes to done necessary startup and cleanup functions
         are called and the current State is changed.
         """
-        previous, self.state_name = self.state_name, self.state.next
+        print('flipping from {} to {}'.format(self.state_name, self.state.next))
         persist = self.state.cleanup()
+        previous, self.state_name = self.state_name, self.state.next
         self.state = self.state_dict[self.state_name]
         self.state.startup(self.now, persist)
         self.state.previous = previous
