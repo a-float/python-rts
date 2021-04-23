@@ -1,6 +1,6 @@
+import os
 import pygame as pg
-from . import colors
-from data.components import building
+from . import colors, tools
 
 pg.init()  # its here to start loading everything up asap
 
@@ -76,7 +76,7 @@ TILE_SIZE = 50
 TILE_SPRITE_SIZE = 45
 
 MAPS = {
-  "Big Rumble": "\
+    "Big Rumble": "\
 oo..1o..oo\n\
 4ooooooooo\n\
 oooooooooo\n\
@@ -84,13 +84,13 @@ ooooooo...\n\
 ooooooo3oo\n\
 o2..oo..oo\n\
 "
-,"Small Rumble": "\
+    , "Small Rumble": "\
 oo..0o..o4\n\
 1ooooooooo\n\
 ooooooo3oo\n\
 oo2oooo...\n\
 "
-, 'Canions': "\
+    , 'Canions': "\
 1oooo.oooo2\n\
 ooooo.ooooo\n\
 ...ooooo...\n\
@@ -105,3 +105,19 @@ PLAYER_COLORS = {
     3: colors.GREEN,
     4: colors.YELLOW,
 }
+
+
+def load_gfx_from_dirs(dirs):
+    """
+    Calls the tools.load_all_graphics() function for all directories passed.
+    """
+    base_path = os.path.join("data", "resources", "graphics")
+    GFX = {}
+    for directory in dirs:
+        path = os.path.join(base_path, directory)
+        GFX[directory] = tools.load_all_gfx(path)
+    return GFX
+
+
+gfx = load_gfx_from_dirs(['buildings', 'units'])
+print(gfx)

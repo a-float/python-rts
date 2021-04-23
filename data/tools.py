@@ -16,6 +16,7 @@ class Control(object):
     Control class for entire project. Contains the game loop, and contains
     the event_loop which passes events to States as needed.
     """
+
     def __init__(self, caption):
         self.screen = pg.display.get_surface()
         self.caption = caption
@@ -80,4 +81,26 @@ class Control(object):
             while lag >= TIME_PER_UPDATE:
                 self.update()
                 lag -= TIME_PER_UPDATE
-            self.draw(lag/TIME_PER_UPDATE)
+            self.draw(lag / TIME_PER_UPDATE)
+
+
+# Resource loading functions.
+def load_all_gfx(directory, colorkey=(255, 0, 255), accept=(".png", ".jpg", ".bmp")):
+    """
+    Load all graphics with extensions in the accept argument.  If alpha
+    transparency is found in the image the image will be converted using
+    convert_alpha().  If no alpha transparency is detected image will be
+    converted using convert() and colorkey will be set to colorkey.
+    """
+    graphics = {}
+    for pic in os.listdir(directory):
+        name, ext = os.path.splitext(pic)
+        if ext.lower() in accept:
+            img = pg.image.load(os.path.join(directory, pic))
+            if img.get_alpha():
+                img = img.convert_alpha()
+            else:
+                img = img.convert()
+                img.set_colorkey(colorkey)
+            graphics[name] = img
+    return graphics
