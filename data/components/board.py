@@ -12,7 +12,6 @@ class Board:
         self.building_group = pg.sprite.Group()
         self.tiles = {}
         self.board_size = None
-        self.players = {}
 
     def _find_neighbours(self, tile_pos):
         results = {}
@@ -28,10 +27,11 @@ class Board:
         """ reads the shape of the map from the file for example """
         self.board_size = (board_string.find('\n'), board_string.count('\n'))
         # print("The board size is:", self.board_size)
-        # figure out where to draw the tiles to center them in the window
+        # calculate the offsets to draw the board in the center of the screen
         offset_x = config.WIDTH/2 - self.board_size[0]*config.TILE_SIZE//2
         offset_y = config.HEIGHT / 2 - self.board_size[1] * config.TILE_SIZE // 2
 
+        players = {}
         castle_tiles = []
         rows = board_string.split('\n')[:-1]  # remove the last empty row
         for y, row in enumerate(rows):
@@ -40,9 +40,9 @@ class Board:
             for x, char in enumerate(row):
                 if char != '.':
                     new_tile = Tile((offset_x+x * config.TILE_SIZE, offset_y+y*config.TILE_SIZE))
-                    if char in ['1', '2', '3', '4']: # TODO check if each of the numbers appears once
-                        new_tile.owner = self.create_player(int(char), new_tile)
-                        castle_tiles.append(new_tile) # castles are bulid after the neighbours are set
+                    if char in ['1', '2', '3', '4']:  # TODO check if each of the numbers appears once
+                        new_tile.owner = self.create_player(players, int(char), new_tile)
+                        castle_tiles.append(new_tile)  # castles are built after the neighbours are set
                     self.tiles[(x, y)] = new_tile
 
         for pos, tile in self.tiles.items():
@@ -52,40 +52,35 @@ class Board:
         for tile in castle_tiles:
             self.build_on_tile(tile, 'castle')
 
+        return players
+
     def get_tile(self, tile_pos):
         return self.tiles.get(tile_pos, None)
 
-    def create_player(self, player_no, start_tile):
+    def create_player(self, players, player_no, start_tile):
         """ Creates and returns the newly created player """
-        if player_no in self.players.keys():
+        if player_no in players.keys():
             # TODO should it be a RuntimeError?
             raise RuntimeError(f"Can't create player no {player_no} as it already exists.")
-        self.players[player_no] = Player(player_no, start_tile, self)
-        return self.players[player_no]
+        players[player_no] = Player(player_no, start_tile, self)
+        return players[player_no]
 
-    def get_player(self, player_no):
-        return self.players.get(player_no, None)
-
-    def build_on_tile(self, tile, builiding_name):
-        new_building = tile.build(builiding_name)
+    def build_on_tile(self, tile, building_name):
+        new_building = tile.build(building_name)
         if new_building is not None:
             self.building_group.add(new_building)
 
     def handle_event(self, event):
-        for p in self.players.values():
-            p.handle_event(event)
+        pass
 
     def update(self):
         self.tile_group.update()
 
     def clear(self):
-        self.players = {}
         self.tiles = {}
         self.tile_group.empty()
         self.building_group.empty()
 
     def draw(self, surface, interpolate):
-        for p in self.players.values():
-            p.draw(surface)
         self.tile_group.draw(surface)
         self.building_group.draw(surface)

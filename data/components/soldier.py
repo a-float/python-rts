@@ -14,7 +14,6 @@ class Soldier(pg.sprite.Sprite):
         if self.path is not None:
             pass
 
-
     def get_attacked(self, damage):
         self.health -= damage
         if self.health <= 0:
