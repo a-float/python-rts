@@ -1,6 +1,7 @@
 import pygame as pg
 from data.components.soldier import *
 from data import config, colors
+from data.components.images import *
 
 BUILDING_DATA = {
     'castle': {'health': 1000, 'income': 5},
@@ -62,8 +63,8 @@ class Castle(Building):
     def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
         super().__init__(tile)
-        self.image = pg.Surface((config.TILE_SIZE // 2, config.TILE_SIZE // 2))
-        self.image.fill(tuple(map(lambda x: x // 2, tile.owner.color)))
+        self.image = pg.image.load("data/components/images/castle.png")
+        self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.health = BUILDING_DATA['castle']
         self.tile = tile
@@ -88,8 +89,8 @@ class Tower(Building):
     def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
         super().__init__(tile)
-        self.image = pg.Surface((config.TILE_SIZE // 3, config.TILE_SIZE // 3))
-        self.image.fill(tuple(map(lambda x: x // 2, tile.owner.color)))
+        self.image = pg.image.load("data/components/images/tower.png")
+        self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         self.tile = tile
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.neighbours = tile.neighbours
@@ -140,16 +141,20 @@ class Tower(Building):
                 neigh = self.neighbours['left'].neighbours['left']
                 if neigh is not None:
                     self.neighbours['left_left'] = neigh
+            self.image = pg.image.load("data/components/images/sniper_tower.png")
+            self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         if self.upgrade_types[upgrade_type] == 2:
             self.type = 2
+            self.image = pg.image.load("data/components/images/magic_tower.png")
+            self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
 
 
 class Barracks(Building):
     def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
         super().__init__(tile)
-        self.image = pg.Surface((config.TILE_SIZE // 3, config.TILE_SIZE // 3))
-        self.image.fill(tuple(map(lambda x: x // 2, colors.YELLOW)))
+        self.image = pg.image.load("data/components/images/barracks.png")
+        self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         self.rect = self.image.get_rect(center=tile.rect.center)
 
         self.neighbours = tile.neighbours
@@ -199,6 +204,9 @@ class Barracks(Building):
 
     def upgrade(self, upgrade_type):
         self.type = self.upgrade_types[upgrade_type]
+        if self.type == self.upgrade_types["shields"]:
+            self.image = pg.image.load("data/components/images/shield_barracks.png")
+            self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
 
     # TODO dodac funkcje usuwania sciezek przy niszczeniu koszar
 
@@ -206,8 +214,8 @@ class Barracks(Building):
 class Market(Building):
     def __init__(self, tile):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((config.TILE_SIZE // 3, config.TILE_SIZE // 3))
-        self.image.fill(tuple(map(lambda x: x // 2, colors.CYAN)))
+        self.image = pg.image.load("data/components/images/market.png")
+        self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.type = 0
         self.timer = 0
@@ -238,6 +246,12 @@ class Market(Building):
 
     def upgrade(self, upgrade_type):
         self.type = self.upgrade_types[upgrade_type]
+        if self.type == self.upgrade_types["bank"]:
+            self.image = pg.image.load("data/components/images/bank.png")
+            self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
+        else:
+            self.image = pg.image.load("data/components/images/mine.png")
+            self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
 
 
 class Path(Building):
