@@ -2,6 +2,7 @@ import pygame as pg
 from data.colors import *
 import data.config as config
 from data.components.building import Barracks
+from data.components.path_builder import PathBuilder
 
 
 class Player:
@@ -19,6 +20,7 @@ class Player:
         self.marker = PlayerMarker(self.color, tile.rect.center)
         self.board = board
         self.controls = config.CONTROLS[player_no]
+        self.path_builder = None
 
     def handle_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -28,8 +30,9 @@ class Player:
             if event.key in self.controls.keys():
                 command = self.controls[event.key]
 
-                if self.tile.building_path:
-                    self.build_path(command)
+                if self.path_builder is not None:
+                    if not self.build_path(command):
+                        return
 
                 elif command == 'action':
                     # print("Player has performed an action")
@@ -45,7 +48,12 @@ class Player:
                 elif command == 'build_path':
                     if self.tile.owner == self and self.tile.building is not None \
                             and isinstance(self.tile.building, Barracks):
-                        self.tile.building.build_path()
+                        print("Started Building a Path")
+                        self.path_builder = PathBuilder(self.id)
+                        try:
+                            self.path_builder.add_tile(self.tile)
+                        except ValueError:
+                            print("Can't build path here")
                     else:
                         print(f"Player {self.id} can't start building path on this tile!")
                 elif command == 'tower':
@@ -70,13 +78,24 @@ class Player:
 
     def build_path(self, command):
         if command in {'up', 'right', 'left', 'down'}:
-            self.tile.building.add_to_queue(command)
-        elif command == 'action':
-            self.tile.building.finish_building(self)
-        elif command == 'upgrade': # upgrade command is default command for canceling building path
-            self.tile.building.finish_building(self, cancel=True)
+            # self.tile.building.add_to_queue(command)
+            try:
+                self.path_builder.add_tile(self.tile.neighbours[command])
+            except ValueError:
+                print("Can't build path here")
+                return False
+            self.tile = self.tile.neighbours[command]
+            self.marker.set_position(self.tile.rect.center)
+            return True
 
-    
+        elif command == 'action':
+            self.path_builder.finish_path()
+            self.path_builder = None
+        elif command == 'upgrade':  # upgrade command is default command for canceling building path
+            self.path_builder.cancel_path()
+            self.path_builder = None
+        return True
+
     def draw(self, surface):
         surface.blit(self.marker.image, self.marker.rect)
 

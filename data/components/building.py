@@ -192,37 +192,6 @@ class Barracks(Building):
         else:
             print(f"Player {player.id} can't train new soldier!")
 
-    def build_path(self):
-        self.tile.building_path = True
-        print("Building path started")
-
-    def add_to_queue(self, direction):
-        self.path_queue.append(direction)
-
-    def finish_building(self, player, cancel=False):
-        if cancel:
-            self.path_queue = []
-            print("Path building cancelled")
-        else:
-            actual_tile = self.tile
-            path_len = len(self.path_queue)
-            for i, command in enumerate(self.path_queue):
-                next_tile = actual_tile.neighbours[command]
-                can_build, potentially_end = next_tile.can_build_path_here(player)
-                if not can_build:
-                    self.finish_building(player, cancel=True)
-                    break
-                elif not potentially_end and not i + 1 == path_len:
-                    next_tile.paths[player.id] = Path(actual_tile, next_tile.neighbours[self.path_queue[i + 1]])
-                    actual_tile = next_tile
-                elif potentially_end and i + 1 == path_len:
-                    self.path_queue = []
-                    print("building path ended successfully")
-                else:
-                    self.finish_building(player, cancel=True)
-                    break
-
-        self.tile.building_path = False
 
 
     def get_upgrade_types(self):
