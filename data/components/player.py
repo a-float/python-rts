@@ -21,6 +21,7 @@ class Player:
         self.board = board
         self.controls = config.CONTROLS[player_no]
         self.path_builder = None
+        self.upgrade_mode = False
 
     def handle_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -30,7 +31,10 @@ class Player:
             if event.key in self.controls.keys():
                 command = self.controls[event.key]
 
-                if self.path_builder is not None:
+                if self.upgrade_mode:
+                    self.upgrade_building(command)
+
+                elif self.path_builder is not None:
                     if not self.build_path(command):
                         return
 
@@ -42,7 +46,12 @@ class Player:
                         print(f"Player {self.id} doesn't have building on this tile!")
                 elif command == 'upgrade':
                     if self.tile.owner == self and self.tile.building is not None:
-                        print(self.tile.building.get_upgrade_types())
+                        upgrade_types = self.tile.building.get_upgrade_types()
+                        if len(upgrade_types) > 0:
+                            print(upgrade_types)
+                            self.upgrade_mode = True
+                        else:
+                            print("Can't upgrade building")
                     else:
                         print(f"Player {self.id} doesn't have building on this tile!")
                 elif command == 'build_path':
@@ -95,6 +104,20 @@ class Player:
             self.path_builder.cancel_path()
             self.path_builder = None
         return True
+
+    def upgrade_building(self, command):
+        upgrade_types = self.tile.building.get_upgrade_types()
+        if command == 'barracks':
+            self.tile.building.upgrade(upgrade_types[0])
+            self.upgrade_mode = False
+        elif command == 'market':
+            self.tile.building.upgrade(upgrade_types[1])
+            self.upgrade_mode = False
+        elif command == 'action':
+            self.upgrade_mode = False
+        else:
+            print("Wrong upgrade command")
+
 
     def draw(self, surface):
         surface.blit(self.marker.image, self.marker.rect)

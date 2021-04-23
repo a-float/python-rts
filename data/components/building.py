@@ -120,7 +120,7 @@ class Tower(Building):
                     break
 
     def get_upgrade_types(self):
-        return list(self.upgrade_types.keys()) if self.type == 0 else None
+        return list(self.upgrade_types.keys()) if self.type == 0 else []
 
     def upgrade(self, upgrade_type):
         if self.upgrade_types[upgrade_type] == 1:
@@ -200,7 +200,7 @@ class Barracks(Building):
 
 
     def get_upgrade_types(self):
-        return list(self.upgrade_types.keys()) if self.type == 0 else None
+        return list(self.upgrade_types.keys()) if self.type == 0 else []
 
     def upgrade(self, upgrade_type):
         self.type = self.upgrade_types[upgrade_type]
@@ -242,7 +242,7 @@ class Market(Building):
             timer = self.type_frequency[self.type]
 
     def get_upgrade_types(self):
-        return list(self.upgrade_types.keys()) if self.type == 0 else None
+        return list(self.upgrade_types.keys()) if self.type == 0 else []
 
     def upgrade(self, upgrade_type):
         self.type = self.upgrade_types[upgrade_type]
