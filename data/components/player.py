@@ -1,15 +1,15 @@
 import pygame as pg
-from data.colors import *
-import data.config as config
+from data import colors
+from data import config
 from data.components.building import Barracks
-from data.components.path_builder import PathBuilder
+from data.components.path import PathBuilder
 
 
 class Player:
     """Class that allows the player to interact with the Board"""
 
     def __init__(self, player_no, tile, board):
-        self.base_color = RED
+        self.base_color = colors.RED
         self.is_dead = False
         self.controls = config.DEFAULT_CONTROLS_1
         self.gold = 0
@@ -20,8 +20,9 @@ class Player:
         self.marker = PlayerMarker(self.color, tile.rect.center)
         self.board = board
         self.controls = config.CONTROLS[player_no]
-        self.path_builder = None
+        self.path_builder = PathBuilder(self)
         self.upgrade_mode = False
+        self.path_surfaces = {}
 
     def handle_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -34,76 +35,45 @@ class Player:
                 if self.upgrade_mode:
                     self.upgrade_building(command)
 
-                elif self.path_builder is not None:
-                    if not self.build_path(command):
-                        return
-
-                elif command == 'action':
-                    # print("Player has performed an action")
-                    if self.tile.owner == self and self.tile.building is None:
-                        print("Performs action")
-                    else:
-                        print(f"Player {self.id} doesn't have building on this tile!")
-                elif command == 'upgrade':
-                    if self.tile.owner == self and self.tile.building is not None:
-                        upgrade_types = self.tile.building.get_upgrade_types()
-                        if len(upgrade_types) > 0:
-                            print(upgrade_types)
-                            self.upgrade_mode = True
+                if self.path_builder.is_active:
+                    self.path_builder.handle_command(command)
+                else:
+                    if command == 'action':
+                        # print("Player has performed an action")
+                        if self.tile.owner == self and self.tile.building is None:
+                            print("Performs action")
                         else:
-                            print("Can't upgrade building")
-                    else:
-                        print(f"Player {self.id} doesn't have building on this tile!")
-                elif command == 'build_path':
-                    if self.tile.owner == self and self.tile.building is not None \
-                            and isinstance(self.tile.building, Barracks):
-                        print("Started Building a Path")
-                        self.path_builder = PathBuilder(self.id)
-                        try:
-                            self.path_builder.add_tile(self.tile)
-                        except ValueError:
-                            print("Can't build path here")
-                    else:
-                        print(f"Player {self.id} can't start building path on this tile!")
-                elif command == 'tower':
-                    if self.tile.owner == self and self.tile.building is None:
-                        self.board.build_on_tile(self.tile, 'tower')
-                    else:
-                        print(f"Player {self.id} can't place buildings on this tile!")
-                elif command == 'barracks':
-                    if self.tile.owner == self and self.tile.building is None:
-                        self.board.build_on_tile(self.tile, 'barracks')
-                    else:
-                        print(f"Player {self.id} can't place buildings on this tile!")
-                elif command == 'market':
-                    if self.tile.owner == self and self.tile.building is None:
-                        self.board.build_on_tile(self.tile, 'market')
-                    else:
-                        print(f"Player {self.id} can't place buildings on this tile!")
-                else:  # it is a movement command
-                    if self.tile.neighbours[command] is not None:
-                        self.tile = self.tile.neighbours[command]
-                        self.marker.set_position(self.tile.rect.center)
+                            print(f"Player {self.id} doesn't have building on this tile!")
+                    elif command == 'upgrade':
+                        self.init_upgrade()
+                    elif command == 'start_path':
+                        self.path_builder.init_path()
+                    elif command in ['tower', 'barracks', 'market']:
+                        self.build(command)
+                    elif command in config.DIRECTIONS:
+                        self.move(command)
 
-    def build_path(self, command):
-        if command in {'up', 'right', 'left', 'down'}:
-            # self.tile.building.add_to_queue(command)
-            try:
-                self.path_builder.add_tile(self.tile.neighbours[command])
-            except ValueError:
-                print("Can't build path here")
-                return False
-            self.tile = self.tile.neighbours[command]
+    def build(self, building_name):
+        if self.tile.owner == self and self.tile.building is None:
+            self.board.build_on_tile(self.tile, building_name)
+        else:
+            print(f"Player {self.id} can't place buildings on this tile!")
+
+    def move(self, direction):
+        if self.tile.neighbours[direction] is not None:
+            self.tile = self.tile.neighbours[direction]
             self.marker.set_position(self.tile.rect.center)
-            return True
 
-        elif command == 'action':
-            self.path_builder.finish_path()
-            self.path_builder = None
-        elif command == 'upgrade':  # upgrade command is default command for canceling building path
-            self.path_builder.cancel_path()
-            self.path_builder = None
-        return True
+    def init_upgrade(self):
+        if self.tile.owner == self and self.tile.building is not None:
+            upgrade_types = self.tile.building.get_upgrade_types()
+            if len(upgrade_types) > 0:
+                print(upgrade_types)
+                self.upgrade_mode = True
+            else:
+                print("Can't upgrade building")
+        else:
+            print(f"Player {self.id} doesn't have building on this tile!")
 
     def upgrade_building(self, command):
         upgrade_types = self.tile.building.get_upgrade_types()
@@ -118,9 +88,12 @@ class Player:
         else:
             print("Wrong upgrade command")
 
-
-    def draw(self, surface):
+    def draw_marker(self, surface):
         surface.blit(self.marker.image, self.marker.rect)
+
+    def draw_paths(self, surface):  # TODO maybe the paths should be stored in the board? :C
+        for img in self.path_surfaces.values():
+            surface.blit(img, img.get_rect())
 
 
 class PlayerMarker(pg.sprite.Sprite):

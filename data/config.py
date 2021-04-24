@@ -36,7 +36,7 @@ DEFAULT_CONTROLS_1 = {pg.K_DOWN: "down",
                       pg.K_o: "market",
                       pg.K_p: "tower",
                       pg.K_l: "upgrade",
-                      pg.K_k: "build_path"
+                      pg.K_k: "start_path"
                       }
 
 DEFAULT_CONTROLS_2 = {pg.K_s: "down",
@@ -48,7 +48,7 @@ DEFAULT_CONTROLS_2 = {pg.K_s: "down",
                       pg.K_e: "market",
                       pg.K_r: "tower",
                       pg.K_f: "upgrade",
-                      pg.K_g: "build_path"
+                      pg.K_g: "start_path"
                       }
 
 CONTROLS = {
@@ -71,6 +71,15 @@ DIRECTIONS = {"up": (0, -1),
               "down-right": (1, 1),
               "down-left": (-1, 1)
               }
+OPPOSITE_DIRECTIONS = {"up": "down",
+                       "down": "up",
+                       "left": "right",
+                       "right": "left",
+                       "up-left": "down-right",
+                       "up-right": "down-left",
+                       "down-right": "up-left",
+                       "down-left": "up-right"
+                       }
 
 TILE_SIZE = 50
 TILE_SPRITE_SIZE = 45
@@ -120,4 +129,4 @@ def load_gfx_from_dirs(dirs):
 
 
 gfx = load_gfx_from_dirs(['buildings', 'units'])
-print(gfx)
+

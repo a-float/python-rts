@@ -43,5 +43,7 @@ class Game(state_machine.State):
         """Draw level and sidebar; if player is dead draw death sequence."""
         surface.fill(colors.WHITE)
         for p in self.players.values():
-            p.draw(surface)
+            p.draw_marker(surface)
         self.board.draw(surface, interpolate)
+        for p in self.players.values():
+            p.draw_paths(surface)

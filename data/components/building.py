@@ -252,37 +252,9 @@ class Market(Building):
             self.image = config.gfx['buildings']['mine']
             self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
 
-
-class Path(Building):
-    def __init__(self, source, target):
-        pg.sprite.Sprite.__init__(self)
-        self.source = source
-        self.target = target
-        self.soldier = None
-        self.can_be_attacked = False
-        self.is_active = False
-
-    def activate_to_source(self):
-        self.is_active = True
-        if isinstance(self.source, Path):
-            self.source.activate_to_source()
-
-    def move_soldiers(self):
-        if isinstance(self.target, Path):
-            self.target.move_soldiers()
-        if self.is_active and self.soldier is None and self.source.soldier is not None:
-            self.soldier = self.source.soldier
-            self.source.soldier = None
-
-    def passive(self, player):
-        if isinstance(self.target, Building) and not isinstance(self.target, Path) and self.soldier is not None:
-            self.soldier.attacks(self.target)
-
-
 BUILDINGS = {
     'castle': Castle,
     'tower': Tower,
     'barracks': Barracks,
-    'market': Market,
-    'path': Path
+    'market': Market
 }
