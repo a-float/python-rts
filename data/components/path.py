@@ -121,6 +121,7 @@ class PathBuilder:
     def finish_path(self):
         self.is_active = False
         self.update_path_surface()
+        self.source_tile.building.can_release = True
 
     def update_path_surface(self):
         self.image.fill(self.colorkey)

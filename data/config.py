@@ -82,6 +82,7 @@ OPPOSITE_DIRECTIONS = {"up": "down",
                        }
 
 TILE_SIZE = 50
+UNIT_SIZE = 40
 TILE_SPRITE_SIZE = 45
 
 MAPS = {
@@ -129,4 +130,3 @@ def load_gfx_from_dirs(dirs):
 
 
 gfx = load_gfx_from_dirs(['buildings', 'units'])
-

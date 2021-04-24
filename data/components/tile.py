@@ -11,7 +11,7 @@ class Tile(pg.sprite.Sprite):
     It knows about it's neighbours, and the building it holds
     """
 
-    def __init__(self, pos):
+    def __init__(self, pos, board):
         pg.sprite.Sprite.__init__(self)
         self.neighbours = {}  # a dict passed by the map
         self.owner = None
@@ -27,6 +27,7 @@ class Tile(pg.sprite.Sprite):
         self.ownership = {}
         self.rect = self.image.get_rect(topleft=pos)
         self.building_path = False
+        self.board = board
 
     def set_neighbours(self, neighbours):
         self.neighbours = neighbours

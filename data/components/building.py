@@ -14,6 +14,7 @@ UPGRADE_COST = 50
 
 class Building(pg.sprite.Sprite):
     def __init__(self, tile):
+        super().__init__()
         self.health = 0
         self.cost = 0
         self.can_be_attacked = True
@@ -22,19 +23,20 @@ class Building(pg.sprite.Sprite):
         self.last_action_time = 0
         self.delay = 1
         self.tile = tile
+        self.owner = tile.owner
         self.image = None
         self.rect = None
 
-    def timer(self, now, player):
+    def update(self, now):
         if self.last_action_time <= now - self.delay * 1000:
             self.last_action_time = now
-            self.passive(player)
+            self.passive()
 
-    def passive(self, player):
-        # It is called every iteration
+    def passive(self):
+        # It is called every self.delay seconds
         pass
 
-    def active(self, player):
+    def active(self):
         # It is called whenever action button is pressed on this field
         pass
 
@@ -60,7 +62,6 @@ class Building(pg.sprite.Sprite):
 
 class Castle(Building):
     def __init__(self, tile):
-        pg.sprite.Sprite.__init__(self)
         super().__init__(tile)
         self.image = config.gfx['buildings']['castle']
         self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
@@ -71,8 +72,8 @@ class Castle(Building):
         self.tile = tile
         self.buildable = False
 
-    def passive(self, player):
-        player.gold += self.basic_income
+    def passive(self):
+        self.owner.add_gold(self.basic_income)
 
 
 """
@@ -86,7 +87,6 @@ Neigbours = {
 
 class Tower(Building):
     def __init__(self, tile):
-        pg.sprite.Sprite.__init__(self)
         super().__init__(tile)
         self.image = config.gfx['buildings']['tower']
         self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
@@ -106,17 +106,18 @@ class Tower(Building):
         self.timer = 0
         self.damage = 50
 
-    def passive(self, player):
+    def passive(self):
         if self.timer > 0:
             self.timer -= 1
         else:
-            for neigh in self.neighbours:
-                # attacks first soldier found
-                soldier = neigh.get_soldier()
-                if soldier is not None:
-                    soldier.get_attacked(self.damage)
-                    self.timer = self.type_reload_time[self.type]
-                    break
+            print('Paf paf i shoot')
+            # for neigh in self.neighbours:
+            #     # attacks first soldier found
+            #     soldier = neigh.get_soldier()
+            #     if soldier is not None:
+            #         soldier.get_attacked(self.damage)
+            #         self.timer = self.type_reload_time[self.type]
+            #         break
 
     def get_upgrade_types(self):
         return list(self.upgrade_types.keys()) if self.type == 0 else []
@@ -150,18 +151,14 @@ class Tower(Building):
 
 class Barracks(Building):
     def __init__(self, tile):
-        pg.sprite.Sprite.__init__(self)
         super().__init__(tile)
         self.image = config.gfx['buildings']['barracks']
         self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         self.rect = self.image.get_rect(center=tile.rect.center)
-
-        self.neighbours = tile.neighbours
         self.tile = tile
         self.soldier_damage = 20
         self.soldier_health = 50
-        self.soldier = None
-        self.path = None
+        self.can_release = False
         self.soldier_queue = []
         self.type = 0
         self.soldier_cost = 50
@@ -181,22 +178,28 @@ class Barracks(Building):
             2: 100
         }
 
-    def passive(self, player):
-        if self.path is not None:
-            self.path.move_soldiers()
-        if self.soldier is None and len(self.soldier_queue) > 0:
-            self.soldier = self.soldier_queue.pop(0)
-
-    def active(self, player):
-        if player.gold >= self.soldier_cost and len(self.soldier_queue) < 5:
-            player.gold -= self.soldier_cost
+    def try_to_train_soldiers(self):
+        if self.owner.gold >= self.soldier_cost and len(self.soldier_queue) < 5:
+            self.owner.gold -= self.soldier_cost
             dmg = self.type_soldier_damage[self.type]
             hp = self.type_soldier_health[self.type]
             self.soldier_queue.append(Soldier(hp, dmg))
         else:
-            print(f"Player {player.id} can't train new soldier!")
+            print(f"Player {self.owner.id} can't train new soldier!")
 
+    def try_to_release_soldier(self):
+        if self.can_release and len(self.soldier_queue) > 0:
+            soldier = self.soldier_queue.pop(0)
+            soldier.release(self.tile.paths[self.owner.id])
+            self.tile.board.add_unit(soldier)
+            print(f"Releasing a players {soldier.owner.id} soldier")
 
+    def passive(self):
+        self.try_to_train_soldiers()
+        self.try_to_release_soldier()
+
+    def active(self):
+        pass
 
     def get_upgrade_types(self):
         return list(self.upgrade_types.keys()) if self.type == 0 else []
@@ -207,17 +210,18 @@ class Barracks(Building):
             self.image = config.gfx['buildings']['shield_barracks']
             self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
 
-    # TODO dodac funkcje usuwania sciezek przy niszczeniu koszar
+    # TODO dodac funkcje usuwania sciezek przy niszczeniu koszar teraz wystarczy usunąć z dista paths surfaces
+    #  playera klucz którym jest płytka baraków (może zmienić na same baraki idk (w barakach del
+    #  player.paths_surfaces[self.tile] czy cos
 
 
 class Market(Building):
     def __init__(self, tile):
-        pg.sprite.Sprite.__init__(self)
+        super().__init__(tile)
         self.image = config.gfx['buildings']['market']
         self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.type = 0
-        self.timer = 0
         self.upgrade_types = {
             'mine': 1,
             'bank': 2
@@ -228,17 +232,14 @@ class Market(Building):
             2: 13
         }
         self.type_frequency = {  # TODO maybe this as well
-            0: 0,
-            1: 0,
+            0: 1,
+            1: 1,
             2: 4
         }
+        self.delay = self.type_frequency[self.type]
 
-    def passive(self, player):
-        if self.timer > 0:
-            self.timer -= 1
-        else:
-            player.gold += self.type_income[self.type]
-            timer = self.type_frequency[self.type]
+    def passive(self):
+        self.owner.add_gold(self.type_income[self.type])
 
     def get_upgrade_types(self):
         return list(self.upgrade_types.keys()) if self.type == 0 else []
@@ -251,6 +252,7 @@ class Market(Building):
         else:
             self.image = config.gfx['buildings']['mine']
             self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
+
 
 BUILDINGS = {
     'castle': Castle,

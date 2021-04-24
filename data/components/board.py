@@ -10,6 +10,7 @@ class Board:
     def __init__(self):
         self.tile_group = pg.sprite.Group()
         self.building_group = pg.sprite.Group()
+        self.unit_group = pg.sprite.Group()
         self.tiles = {}
         self.board_size = None
 
@@ -39,7 +40,7 @@ class Board:
                 raise ValueError(f'Invalid board string. Faulty row: {y}. "{row}"')
             for x, char in enumerate(row):
                 if char != '.':
-                    new_tile = Tile((offset_x+x * config.TILE_SIZE, offset_y+y*config.TILE_SIZE))
+                    new_tile = Tile((offset_x+x * config.TILE_SIZE, offset_y+y*config.TILE_SIZE), self)
                     if char in ['1', '2', '3', '4']:  # TODO check if each of the numbers appears once
                         new_tile.owner = self.create_player(players, int(char), new_tile)
                         castle_tiles.append(new_tile)  # castles are built after the neighbours are set
@@ -70,11 +71,17 @@ class Board:
         if new_building is not None:
             self.building_group.add(new_building)
 
+    def add_unit(self, unit):
+        self.unit_group.add(unit)
+
     def handle_event(self, event):
         pass
 
-    def update(self):
+    def update(self, now):
         self.tile_group.update()
+        self.unit_group.update()
+        for building in self.building_group.sprites():
+            building.update(now)
 
     def clear(self):
         self.tiles = {}
@@ -84,3 +91,4 @@ class Board:
     def draw(self, surface, interpolate):
         self.tile_group.draw(surface)
         self.building_group.draw(surface)
+        self.unit_group.draw(surface)

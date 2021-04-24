@@ -37,7 +37,7 @@ class Game(state_machine.State):
 
     def update(self, keys, now):
         """Update phase for the primary game state."""
-        self.board.update()
+        self.board.update(now)
 
     def draw(self, surface, interpolate):
         """Draw level and sidebar; if player is dead draw death sequence."""
