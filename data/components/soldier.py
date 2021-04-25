@@ -37,19 +37,23 @@ class Soldier(pg.sprite.Sprite):
         dx, dy = (to[0] - src[0]) / hypot * scale, (to[1] - src[1]) / hypot * scale
         return dx, dy
 
+    def try_to_attack(self):
+        if self.path.tile.building is not None and self.path.tile.owner != self.owner:
+            self.attack(self.path.tile.building)
+
     def update(self):
         if self.path is None:
             self.kill()
         if dist_sq(self.rect.center, self.path.target.tile.rect.center) >= 0.001:
             # print(self.move_vector, self.rect.center)
             self.rect.move_ip(*self.move_vector)
-            if self.path.tile.building is not None and self.path.tile.owner != self.owner:
-                self.attack(self.path.tile.building)
+            self.try_to_attack()
         else:  # soldier has arrived at the target tile
             self.path.tile.soldiers.remove(self)
             self.path = self.path.target
             self.path.tile.soldiers.append(self)
             if self.path.target is None:  # soldier disappears upon reaching end of the path
+                self.try_to_attack()
                 self.kill()
                 self.path.tile.soldiers.remove(self)
             else:
