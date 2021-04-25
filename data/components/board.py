@@ -91,9 +91,10 @@ class Board:
 
     def draw(self, surface, interpolate):
         self.tile_group.draw(surface)
+        self.draw_paths(surface)
         self.building_group.draw(surface)
         self.unit_group.draw(surface)
 
-    def draw_paths(self, surface): 
+    def draw_paths(self, surface):
         for img in self.path_surfaces.values():
             surface.blit(img, img.get_rect())

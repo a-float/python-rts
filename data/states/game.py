@@ -45,6 +45,4 @@ class Game(state_machine.State):
         for p in self.players.values():
             p.draw_marker(surface)
         self.board.draw(surface, interpolate)
-        self.board.draw_paths(surface)
-        # for p in self.players.values():
-        #     p.draw_paths(surface)
+
