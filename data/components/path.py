@@ -5,17 +5,19 @@ from data import config, colors
 
 
 class Path(pg.sprite.Sprite):  # todo its not being a sprite rn, just drawing a line
+    # todo if second path of same player is built, first disappears
     """
     Creates a double linked list. The first one has None source and the last one None target
     Each points to the tile it lies on.
     Used to display the paths and guide the soldiers
     """
+
     def __init__(self, source, target, tile, color):
         super().__init__()
         self.source = source
         self.target = target
         self.tile = tile
-        self.color = tuple([int(0.8*x) for x in color])
+        self.color = tuple([int(0.8 * x) for x in color])
         # self.image = None
         # self.rect = None
 
@@ -97,7 +99,7 @@ class PathBuilder:
                 self.undo_path()
                 self.owner.move(command)
                 self.update_path_surface()
-            else:   # moving in another direction
+            else:  # moving in another direction
                 try:
                     self.connect_tile(self.owner.tile.neighbours[command])
                     self.prev_directions.append(command)

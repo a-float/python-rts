@@ -28,6 +28,7 @@ class Tile(pg.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.building_path = False
         self.board = board
+        self.soldiers = []
 
     def set_neighbours(self, neighbours):
         self.neighbours = neighbours
@@ -53,11 +54,14 @@ class Tile(pg.sprite.Sprite):
                 n.decrease_ownership(self.owner)
                 n.update_owner()
 
-    def get_soldier(self):
-        if self.building is not None and isinstance(self.building, (building.Barracks, building.Path)):
-            return self.building.soldier
-        else:
-            return None
+    def get_soldier(self, owner):
+        result = None
+        print("Soldiers: ", self.soldiers)
+        for soldier in self.soldiers:
+            if soldier.owner.id != owner.id:
+                result = soldier
+                break
+        return result
 
     def increase_ownership(self, player):
         self.ownership[player] = self.ownership.get(player, 0) + 1

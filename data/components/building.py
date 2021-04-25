@@ -5,6 +5,7 @@ from data import config, colors
 BUILDING_DATA = {
     'castle': {'health': 1000, 'income': 5},
     'tower': {'health': 200, 'cost': 200},
+    'barracks': {'health': 60, 'cost': 250},
     'market': {'health': 150, 'cost': 250},
     'path': {'health': 50, 'cost': 20}
 }
@@ -47,9 +48,11 @@ class Building(pg.sprite.Sprite):
         return None
 
     def get_attacked(self, damage):
+        print("Building got ", damage, " damage")
         self.health -= damage
         if self.health <= 0:
-            self.is_destroyed = True
+            self.tile.building = None
+            self.kill()
 
     @staticmethod
     def to_dict():
@@ -66,7 +69,7 @@ class Castle(Building):
         self.image = config.gfx['buildings']['castle']
         self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         self.rect = self.image.get_rect(center=tile.rect.center)
-        self.health = BUILDING_DATA['castle']
+        self.health = BUILDING_DATA['castle']['health']
         self.tile = tile
         self.basic_income = BUILDING_DATA['castle']['income']  # TODO make income a static class variable
         self.tile = tile
@@ -94,6 +97,7 @@ class Tower(Building):
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.neighbours = tile.neighbours
         self.type = 0
+        self.health = BUILDING_DATA['tower']['health']
         self.upgrade_types = {
             'sniper': 1,
             'magic': 2
@@ -111,13 +115,16 @@ class Tower(Building):
             self.timer -= 1
         else:
             print('Paf paf i shoot')
-            # for neigh in self.neighbours:
-            #     # attacks first soldier found
-            #     soldier = neigh.get_soldier()
-            #     if soldier is not None:
-            #         soldier.get_attacked(self.damage)
-            #         self.timer = self.type_reload_time[self.type]
-            #         break
+            for neigh in self.neighbours:
+                # attacks first soldier found
+                neigh = self.neighbours[neigh]
+                soldier = None
+                if neigh is not None:
+                    soldier = neigh.get_soldier(self.owner)
+                if soldier is not None:
+                    soldier.get_attacked(self.damage)
+                    self.timer = self.type_reload_time[self.type]
+                    break
 
     def get_upgrade_types(self):
         return list(self.upgrade_types.keys()) if self.type == 0 else []
@@ -141,11 +148,11 @@ class Tower(Building):
                 neigh = self.neighbours['left'].neighbours['left']
                 if neigh is not None:
                     self.neighbours['left_left'] = neigh
-            self.image = pg.image.load("data/components/images/sniper_tower.png")
+            self.image = config.gfx['buildings']['sniper_tower']
             self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         if self.upgrade_types[upgrade_type] == 2:
             self.type = 2
-            self.image = pg.image.load("data/components/images/magic_tower.png")
+            self.image = config.gfx['buildings']['magic_tower']
             self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
 
 
@@ -163,6 +170,7 @@ class Barracks(Building):
         self.type = 0
         self.soldier_cost = 50
         self.path_queue = []
+        self.health = BUILDING_DATA['barracks']['health']
         self.upgrade_types = {
             'swords': 1,
             'shields': 2
@@ -204,15 +212,28 @@ class Barracks(Building):
     def get_upgrade_types(self):
         return list(self.upgrade_types.keys()) if self.type == 0 else []
 
+    def get_attacked(self, damage):
+        self.health -= damage
+        print("Get attacked DMG: ", damage)
+        if self.health <= 0:
+            path = self.tile.paths[self.owner.id]
+            while path is not None:
+                next_path = path.target
+                path.tile.paths[self.owner.id] = None
+                path.kill()
+                path = next_path
+            self.tile.building = None
+            del self.owner.path_surfaces[self.tile]
+            self.kill()
+
     def upgrade(self, upgrade_type):
         self.type = self.upgrade_types[upgrade_type]
         if self.type == self.upgrade_types["shields"]:
             self.image = config.gfx['buildings']['shield_barracks']
             self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
-
-    # TODO dodac funkcje usuwania sciezek przy niszczeniu koszar teraz wystarczy usunąć z dista paths surfaces
-    #  playera klucz którym jest płytka baraków (może zmienić na same baraki idk (w barakach del
-    #  player.paths_surfaces[self.tile] czy cos
+        else:
+            self.image = config.gfx['buildings']['sword_barracks']
+            self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
 
 
 class Market(Building):
@@ -222,6 +243,7 @@ class Market(Building):
         self.image = pg.transform.scale(self.image, (config.TILE_SIZE, config.TILE_SIZE))
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.type = 0
+        self.health = BUILDING_DATA['market']['health']
         self.upgrade_types = {
             'mine': 1,
             'bank': 2
