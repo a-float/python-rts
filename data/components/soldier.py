@@ -16,48 +16,51 @@ class Soldier(pg.sprite.Sprite):
         self.image = config.gfx['units']['soldier']
         self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,)*2)
         self.speed = 1
+        self.tile = None
+        self.tile_index = 1
 
     def release(self, path):
         self.path = path
-        self.path.tile.soldiers.append(self)
+        self.tile = self.path.tiles[0]
+        self.tile.soldiers.append(self)
         if self.type == 1:
             self.image = config.gfx['units']['swordsman']
-            self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,) * 2)
         elif self.type == 2:
             self.image = config.gfx['units']['shieldman']
-            self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,) * 2)
-        self.rect = self.image.get_rect(center=path.tile.rect.center)
+        self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,) * 2)
+        self.rect = self.image.get_rect(center=path.tiles[0].rect.center)
         self.move_vector = self.get_move_vector()
-        self.owner = self.path.tile.owner
+        self.owner = self.tile.owner
 
     def get_move_vector(self):
-        src, to = self.path.tile.rect.center, self.path.target.tile.rect.center
+        src, to = self.rect.center, self.path.tiles[self.tile_index].rect.center
         hypot = math.sqrt(dist_sq(src, to))
         scale = self.speed
         dx, dy = (to[0] - src[0]) / hypot * scale, (to[1] - src[1]) / hypot * scale
         return dx, dy
 
     def try_to_attack(self):
-        if self.path.tile.building is not None and self.path.tile.owner != self.owner:
-            self.attack(self.path.tile.building)
+        if self.tile.building is not None and self.tile.owner != self.owner:
+            self.attack(self.tile.building)
 
     def update(self):
         if self.path is None:
             self.kill()
-        if dist_sq(self.rect.center, self.path.target.tile.rect.center) >= 0.001:
+        if dist_sq(self.rect.center, self.path.tiles[self.tile_index].rect.center) >= 0.001:
             # print(self.move_vector, self.rect.center)
             self.rect.move_ip(*self.move_vector)
-            self.try_to_attack()
         else:  # soldier has arrived at the target tile
-            self.path.tile.soldiers.remove(self)
-            self.path = self.path.target
-            self.path.tile.soldiers.append(self)
-            if self.path.target is None:  # soldier disappears upon reaching end of the path
-                self.try_to_attack()
+            self.try_to_attack()
+            self.tile.soldiers.remove(self)
+
+            # try to go to the next tile
+            if self.tile_index == len(self.path.tiles)-1:  # soldier disappears upon reaching the end of the path
                 self.kill()
-                self.path.tile.soldiers.remove(self)
             else:
+                self.tile_index += 1
+                self.tile = self.path.tiles[self.tile_index]
                 self.move_vector = self.get_move_vector()
+                self.tile.soldiers.append(self)
 
     def get_attacked(self, damage):
         self.health -= damage
@@ -65,7 +68,7 @@ class Soldier(pg.sprite.Sprite):
         if self.health <= 0:
             print("IM DEAD!")
             self.kill()
-            self.path.tile.soldiers.remove(self)
+            self.tile.soldiers.remove(self)
             del self
 
     def attack(self, building):

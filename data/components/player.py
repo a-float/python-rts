@@ -1,7 +1,6 @@
 import pygame as pg
 from data import colors
 from data import config
-from data.components.building import Barracks
 from data.components.path import PathBuilder
 
 

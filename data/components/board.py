@@ -5,15 +5,15 @@ from data.components.player import Player
 
 
 class Board:
-    """Manages all the tiles"""
+    """Manages the tiles"""
 
     def __init__(self):
         self.tile_group = pg.sprite.Group()
         self.building_group = pg.sprite.Group()
         self.unit_group = pg.sprite.Group()
+        self.path_group = pg.sprite.Group()
         self.tiles = {}
         self.board_size = None
-        self.path_surfaces = {}
 
     def _find_neighbours(self, tile_pos):
         results = {}
@@ -88,13 +88,12 @@ class Board:
         self.tiles = {}
         self.tile_group.empty()
         self.building_group.empty()
+        self.path_group.empty()
+        self.unit_group.empty()
 
     def draw(self, surface, interpolate):
         self.tile_group.draw(surface)
-        self.draw_paths(surface)
+        self.path_group.draw(surface)
+
         self.building_group.draw(surface)
         self.unit_group.draw(surface)
-
-    def draw_paths(self, surface):
-        for img in self.path_surfaces.values():
-            surface.blit(img, img.get_rect())

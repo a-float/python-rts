@@ -68,8 +68,8 @@ class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview clas
     def __init__(self):
         super().__init__([5, 4])
         self.image = pg.Surface(config.SCREEN_SIZE).convert()
-        self.image.set_colorkey(config.COLOR_KEY)
-        self.image.fill(config.COLOR_KEY)
+        self.image.set_colorkey(config.COLORKEY)
+        self.image.fill(config.COLORKEY)
         self.board = Board()
         self.selected = {'bots': 0, 'players': 2}
         self.NUMBERS = [0, 1, 2, 3, 4]
@@ -79,8 +79,8 @@ class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview clas
         self.preview_size = (300, 200)
         self.rendered = {}
         self.image = pg.Surface(config.SCREEN_SIZE).convert()
-        self.image.set_colorkey(config.COLOR_KEY)
-        self.image.fill(config.COLOR_KEY)
+        self.image.set_colorkey(config.COLORKEY)
+        self.image.fill(config.COLORKEY)
         self.render()
 
     def change_map(self, diff):

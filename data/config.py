@@ -9,7 +9,7 @@ SCREEN_SIZE = (WIDTH, HEIGHT)
 SCREEN_RECT = pg.Rect((0, 0), SCREEN_SIZE)
 _screen = pg.display.set_mode(SCREEN_SIZE)
 BACKGROUND_COLOR = colors.LIGHT_GRAY
-COLOR_KEY = (255, 0, 255)  # treated as alpha - bright purple
+COLORKEY = (255, 0, 255)  # treated as alpha - bright purple
 
 # Display until loading finishes.
 FONT_BIG = pg.font.SysFont("comicsansms", 100)
