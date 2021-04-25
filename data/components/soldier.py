@@ -3,14 +3,15 @@ import pygame as pg
 from data import config
 
 
-class Soldier(pg.sprite.Sprite): # todo soldiers get damage but cant die, and newly made sum up
-    def __init__(self, health, damage):
+class Soldier(pg.sprite.Sprite):
+    def __init__(self, health, damage, type):
         pg.sprite.Sprite.__init__(self)
         self.max_health = health
         self.health = health
         self.damage = damage
         self.path = None
         self.owner = None
+        self.type =type
         self.move_vector = None
         self.image = config.gfx['units']['soldier']
         self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,)*2)
@@ -19,6 +20,12 @@ class Soldier(pg.sprite.Sprite): # todo soldiers get damage but cant die, and ne
     def release(self, path):
         self.path = path
         self.path.tile.soldiers.append(self)
+        if self.type == 1:
+            self.image = config.gfx['units']['swordsman']
+            self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,) * 2)
+        elif self.type == 2:
+            self.image = config.gfx['units']['shieldman']
+            self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,) * 2)
         self.rect = self.image.get_rect(center=path.tile.rect.center)
         self.move_vector = self.get_move_vector()
         self.owner = self.path.tile.owner
@@ -44,14 +51,18 @@ class Soldier(pg.sprite.Sprite): # todo soldiers get damage but cant die, and ne
             self.path.tile.soldiers.append(self)
             if self.path.target is None:  # soldier disappears upon reaching end of the path
                 self.kill()
+                self.path.tile.soldiers.remove(self)
             else:
                 self.move_vector = self.get_move_vector()
 
     def get_attacked(self, damage):
-        print("AUCH!!!  HP:  ", self.health)
         self.health -= damage
+        print("AUCH!!!  HP:  ", self.health)
         if self.health <= 0:
+            print("IM DEAD!")
             self.kill()
+            self.path.tile.soldiers.remove(self)
+            del self
 
     def attack(self, building):
         building.get_attacked(self.damage)

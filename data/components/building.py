@@ -191,7 +191,7 @@ class Barracks(Building):
             self.owner.gold -= self.soldier_cost
             dmg = self.type_soldier_damage[self.type]
             hp = self.type_soldier_health[self.type]
-            self.soldier_queue.append(Soldier(hp, dmg))
+            self.soldier_queue.append(Soldier(hp, dmg, self.type))
         else:
             print(f"Player {self.owner.id} can't train new soldier!")
 
