@@ -44,7 +44,7 @@ class Soldier(pg.sprite.Sprite):
             self.attack(self.tile.building)
 
     def update(self):
-        if self.path is None:
+        if self.tile.paths[self.owner.id] is None:  # tha path under the soldier has disappeared
             self.kill()
         if dist_sq(self.rect.center, self.path.tiles[self.tile_index].rect.center) >= 0.001:
             # print(self.move_vector, self.rect.center)

@@ -70,6 +70,7 @@ class PathBuilder:
         if tile.owner == self.owner and isinstance(tile.building, Barracks):
             if tile.paths[self.owner.id] is not None:
                 tile.paths[self.owner.id].destroy()
+                tile.building.can_release = False
             print("Started Building a Path")
             self.path = Path(tile, self.owner)  # has to be a new one
             tile.paths[self.owner.id] = self.path
@@ -105,5 +106,8 @@ class PathBuilder:
         print("Path Building Cancelled")
 
     def finish_path(self):
-        self.is_active = False
-        self.path.tiles[0].building.can_release = True
+        if len(self.path.tiles) == 1:  # path start at the barracks but doesnt go anywhere
+            self.cancel_path()
+        else:
+            self.is_active = False
+            self.path.tiles[0].building.can_release = True
