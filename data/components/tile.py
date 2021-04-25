@@ -56,7 +56,6 @@ class Tile(pg.sprite.Sprite):
 
     def get_soldier(self, owner):
         result = None
-        print("Soldiers: ", self.soldiers)
         for soldier in self.soldiers:
             if soldier.owner.id != owner.id:
                 result = soldier
