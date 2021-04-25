@@ -132,4 +132,4 @@ class PathBuilder:
         while path is not None:
             path.draw(self.image)
             path = path.source
-        self.owner.path_surfaces[self.source_tile] = self.image
+        self.owner.tile.board.path_surfaces[self.source_tile] = self.image

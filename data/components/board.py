@@ -13,6 +13,7 @@ class Board:
         self.unit_group = pg.sprite.Group()
         self.tiles = {}
         self.board_size = None
+        self.path_surfaces = {}
 
     def _find_neighbours(self, tile_pos):
         results = {}
@@ -92,3 +93,7 @@ class Board:
         self.tile_group.draw(surface)
         self.building_group.draw(surface)
         self.unit_group.draw(surface)
+
+    def draw_paths(self, surface): 
+        for img in self.path_surfaces.values():
+            surface.blit(img, img.get_rect())

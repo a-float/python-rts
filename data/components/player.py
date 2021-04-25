@@ -22,7 +22,6 @@ class Player:
         self.controls = config.CONTROLS[player_no]
         self.path_builder = PathBuilder(self)
         self.upgrade_mode = False
-        self.path_surfaces = {}
 
     def handle_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -95,10 +94,6 @@ class Player:
 
     def draw_marker(self, surface):
         surface.blit(self.marker.image, self.marker.rect)
-
-    def draw_paths(self, surface):  # TODO maybe the paths should be stored in the board? :C
-        for img in self.path_surfaces.values():
-            surface.blit(img, img.get_rect())
 
 
 class PlayerMarker(pg.sprite.Sprite):

@@ -11,7 +11,7 @@ class Soldier(pg.sprite.Sprite):
         self.damage = damage
         self.path = None
         self.owner = None
-        self.type =type
+        self.type = type
         self.move_vector = None
         self.image = config.gfx['units']['soldier']
         self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,)*2)
