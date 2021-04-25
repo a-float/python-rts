@@ -19,7 +19,7 @@ class Game(state_machine.State):
         self.players = {}
 
     def startup(self, now, persistent):
-        self.players = self.board.initialize(persistent['map'][1])
+        self.players = self.board.initialize(persistent)
 
     def cleanup(self):
         self.done = False

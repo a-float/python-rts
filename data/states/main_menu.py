@@ -87,7 +87,7 @@ class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview clas
         self.map_index = (self.map_index + diff) % len(self.maps)
         self.current_map = self.maps[self.map_index]
         self.board.clear()
-        self.board.initialize(self.current_map[1])
+        self.board.initialize(self.get_persist())
 
         center_x, center_y = config.SCREEN_RECT.center
 
@@ -172,19 +172,22 @@ class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview clas
         screen.blit(self.image, self.image.get_rect())
 
     def pressed_enter(self):
-        if self.index[1] == 0:
+        if self.index[1] == 0:  # change player no
             self.selected['players'] = self.index[0]
-        elif self.index[1] == 1:
+            self.change_map(0)  # update player count
+        elif self.index[1] == 1:  # change bot no
             self.selected['bots'] = self.index[0]
-        elif self.index[1] == 2:
+        elif self.index[1] == 2:  # start button
+            self.persist = self.get_persist()
             self.board.clear()
-            self.persist = {
-                'players_no': self.selected['players'],
-                'bots_no': self.selected['bots'],
-                'map': self.current_map,
-            }
             self.quit = True
-        elif self.index[1] == 3:
+        elif self.index[1] == 3:  # back button
             self.next = 'MAIN'
             self.done = True
 
+    def get_persist(self):
+        return {
+            'players_no': self.selected['players'],
+            'bots_no': self.selected['bots'],
+            'map': self.current_map,
+        }

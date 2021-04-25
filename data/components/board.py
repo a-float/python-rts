@@ -14,6 +14,7 @@ class Board:
         self.path_group = pg.sprite.Group()
         self.tiles = {}
         self.board_size = None
+        self.settings = None
 
     def _find_neighbours(self, tile_pos):
         results = {}
@@ -25,7 +26,9 @@ class Board:
                 results[name] = None
         return results
 
-    def initialize(self, board_string):
+    def initialize(self, settings):
+        self.settings = settings
+        board_string = settings['map'][1]
         """ reads the shape of the map from the file for example """
         self.board_size = (board_string.find('\n'), board_string.count('\n'))
         # print("The board size is:", self.board_size)
@@ -42,7 +45,8 @@ class Board:
             for x, char in enumerate(row):
                 if char != '.':
                     new_tile = Tile((offset_x+x * config.TILE_SIZE, offset_y+y*config.TILE_SIZE), self)
-                    if char in ['1', '2', '3', '4']:  # TODO check if each of the numbers appears once
+                    # TODO check if each of the numbers appears once
+                    if char in list([str(i) for i in range(1, self.settings['players_no']+1)]):
                         new_tile.owner = self.create_player(players, int(char), new_tile)
                         castle_tiles.append(new_tile)  # castles are built after the neighbours are set
                     self.tiles[(x, y)] = new_tile
