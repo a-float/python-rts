@@ -82,7 +82,7 @@ OPPOSITE_DIRECTIONS = {"up": "down",
                        }
 
 TILE_SIZE = 50
-UNIT_SIZE = 40
+UNIT_SIZE = 50
 TILE_SPRITE_SIZE = 45
 
 MAPS = {

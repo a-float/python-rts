@@ -169,7 +169,7 @@ class Barracks(Building):
         }
 
     def try_to_train_soldiers(self):
-        if self.owner.gold >= self.soldier_cost and len(self.soldier_queue) < 5:
+        if self.owner.gold >= self.soldier_cost and len(self.soldier_queue) < 3:
             self.owner.gold -= self.soldier_cost
             dmg = self.soldier_damage[self.type]
             hp = self.soldier_health[self.type]

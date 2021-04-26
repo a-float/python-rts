@@ -85,6 +85,8 @@ class PathBuilder:
         print(f"Backtracking building of the path")
 
     def handle_command(self, command):
+        if self.path.tiles[0].building is None:  # the barracks were destroyed while building the path
+            self.cancel_path()
         if command in {'up', 'right', 'left', 'down'}:
             target_tile = self.owner.tile.neighbours[command]
             if len(self.prev_directions) > 0 and \
@@ -111,3 +113,4 @@ class PathBuilder:
         else:
             self.is_active = False
             self.path.tiles[0].building.can_release = True
+        print("Path Building Finished")
