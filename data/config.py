@@ -4,7 +4,7 @@ from . import colors, tools
 
 pg.init()  # its here to start loading everything up asap
 
-WIDTH, HEIGHT = (600, 400)
+WIDTH, HEIGHT = (1200, 800)
 SCREEN_SIZE = (WIDTH, HEIGHT)
 SCREEN_RECT = pg.Rect((0, 0), SCREEN_SIZE)
 _screen = pg.display.set_mode(SCREEN_SIZE)
@@ -16,6 +16,10 @@ FONT_BIG = pg.font.SysFont("comicsansms", 100)
 FONT_MED = pg.font.SysFont("comicsansms", 50)
 FONT_SMALL = pg.font.SysFont("comicsansms", 20)
 FONT_TINY = pg.font.SysFont("comicsansms", 15)
+
+TILE_SIZE = 100
+UNIT_SIZE = 100
+TILE_SPRITE_SIZE = 90
 
 _screen.fill(colors.BLUE)
 _render = FONT_BIG.render("LOADING...", True, pg.Color("white"))
@@ -80,10 +84,6 @@ OPPOSITE_DIRECTIONS = {"up": "down",
                        "down-right": "up-left",
                        "down-left": "up-right"
                        }
-
-TILE_SIZE = 50
-UNIT_SIZE = 50
-TILE_SPRITE_SIZE = 45
 
 MAPS = {
     "Big Rumble": "\

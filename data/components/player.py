@@ -32,8 +32,7 @@ class Player:
 
                 if self.upgrade_mode:
                     self.upgrade_building(command)
-
-                if self.path_builder.is_active:
+                elif self.path_builder.is_active:
                     self.path_builder.handle_command(command)
                 else:
                     if command == 'action':
