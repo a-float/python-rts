@@ -3,8 +3,9 @@ Contains useful functionality for uni- and bi-directional menus.
 """
 
 import pygame as pg
-
+import typing
 from . import config, state_machine, colors
+from data.components.board import Board
 
 
 class BasicMenu(state_machine.State):
@@ -61,7 +62,6 @@ class BidirectionalMenu(state_machine.State):
             elif event.key in config.DEFAULT_CONTROLS_1:
                 # config.SFX["dj-chronos__menu-nav-2"].play()
                 self.move_on_grid(event)
-
 
     def move_on_grid(self, event):
         """Called when user moves the selection cursor with the arrow keys."""
@@ -121,3 +121,58 @@ def make_options(font, choices, start, space, vertical=True, perp_center=None):
     args = [font, choices, colors.BLUE, start, space, vertical, perp_center]
     options["active"] = make_text_list(*args)
     return options
+
+
+class BoardPreview:
+    def __init__(self, bots_no, players_no, size=(300, 200)):
+        self.board = Board()
+        self.preview_size = size
+        self.maps = list(config.MAPS.items())
+        self.map_index = 0
+        self.current_map = self.maps[0]
+        self.players_no = players_no
+        self.bots_no = bots_no
+        self.rendered = {}
+
+    def draw(self, surface):
+        surface.blit(*self.rendered['map_name'])
+        surface.blit(*self.rendered['preview'])
+        surface.blit(*self.rendered['map_help'])
+
+    def change_map(self, diff):
+        self.map_index = (self.map_index + diff) % len(self.maps)
+        self.current_map = self.maps[self.map_index]
+        self.board.clear()
+        self.board.initialize(self.get_settings())
+
+        center_x, center_y = config.SCREEN_RECT.center
+
+        surface = pg.Surface(config.SCREEN_SIZE)
+        surface.fill(colors.WHITE)
+        self.board.draw(surface, 0)
+        preview = pg.transform.scale(surface, self.preview_size)
+        preview_x = max(35 + self.preview_size[0] * 0.5, center_x - self.preview_size[0] * 0.5 - 50)
+        preview_rect = preview.get_rect(center=(preview_x, center_y))
+        self.rendered['preview'] = (preview, preview_rect)
+
+        map_name = config.FONT_SMALL.render(self.current_map[0], 1, colors.BLACK)
+        map_name_rect = map_name.get_rect(center=(preview_x, center_y - self.preview_size[1] * 0.5 - 30))
+        self.rendered['map_name'] = (map_name, map_name_rect)
+
+        map_help_name = config.FONT_TINY.render('Press a or d to change the selected map', 1, colors.BLACK)
+        map_help_rect = map_help_name.get_rect(center=(preview_x, center_y + self.preview_size[1] * 0.5 + 15))
+        self.rendered['map_help'] = (map_help_name, map_help_rect)  # TODO this should be in render but whatever
+
+    def clear(self):
+        self.board.clear()
+
+    def get_settings(self):
+        return {
+            'players_no': self.players_no,
+            'bots_no': self.bots_no,
+            'map': self.current_map
+        }
+
+    def set_player_and_bots_no(self, new_counts: typing.Dict[str, int]):
+        self.players_no = new_counts['players']
+        self.bots_no = new_counts['bots']

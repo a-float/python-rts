@@ -11,7 +11,7 @@ class Menu(state_machine.State):
         self.next = "GAME"
         self.state_machine = None
 
-    def startup(self, now, persistant):
+    def startup(self, now, persistent):
         self.state_machine = state_machine.StateMachine()
         state_dict = {
             "MAIN": MainMenu(),
@@ -43,7 +43,7 @@ class MainMenu(menu_utils.BasicMenu):
         self.next = 'GAME_SETUP'
         start_y = config.SCREEN_RECT.height * 0.5
         self.title = config.FONT_BIG.render('Castillio', 1, colors.RED)
-        self.title_rect = self.title.get_rect(midtop = (config.SCREEN_RECT.centerx, config.SCREEN_RECT.top + 20))
+        self.title_rect = self.title.get_rect(midtop=(config.SCREEN_RECT.centerx, config.SCREEN_RECT.top + 20))
         self.items = menu_utils.make_options(config.FONT_MED, self.ITEMS, start_y, 65)
 
     def draw(self, surface, interpolate):
@@ -64,51 +64,21 @@ class MainMenu(menu_utils.BasicMenu):
             sys.exit()
 
 
-class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview class?
+class GameSetup(menu_utils.BidirectionalMenu):
     def __init__(self):
         super().__init__([5, 4])
         self.image = pg.Surface(config.SCREEN_SIZE).convert()
         self.image.set_colorkey(config.COLORKEY)
         self.image.fill(config.COLORKEY)
-        self.board = Board()
         self.selected = {'bots': 0, 'players': 2}
-        self.NUMBERS = [0, 1, 2, 3, 4]
-        self.map_index = 0
-        self.maps = list(config.MAPS.items())
-        self.current_map = self.maps[0]
-        self.preview_size = (300, 200)
+        preview_size = (int(config.WIDTH*0.4), int(config.HEIGHT*0.4))
+        self.board_preview = menu_utils.BoardPreview(self.selected['bots'], self.selected['players'], size=preview_size)
+        self.NUMBERS = range(5)
         self.rendered = {}
-        self.image = pg.Surface(config.SCREEN_SIZE).convert()
-        self.image.set_colorkey(config.COLORKEY)
-        self.image.fill(config.COLORKEY)
+        self.board_preview.change_map(0)
         self.render()
 
-    def change_map(self, diff):
-        self.map_index = (self.map_index + diff) % len(self.maps)
-        self.current_map = self.maps[self.map_index]
-        self.board.clear()
-        self.board.initialize(self.get_persist())
-
-        center_x, center_y = config.SCREEN_RECT.center
-
-        surface = pg.Surface(config.SCREEN_SIZE)
-        surface.fill(colors.WHITE)
-        self.board.draw(surface, 0)
-        preview = pg.transform.scale(surface, self.preview_size)
-        preview_x = max(35 + self.preview_size[0] * 0.5, center_x - self.preview_size[0] * 0.5 - 50)
-        preview_rect = preview.get_rect(center=(preview_x, center_y))
-        self.rendered['preview'] = (preview, preview_rect)
-
-        map_name = config.FONT_SMALL.render(self.current_map[0], 1, colors.BLACK)
-        map_name_rect = map_name.get_rect(center=(preview_x, center_y - self.preview_size[1] * 0.5 - 30))
-        self.rendered['map_name'] = (map_name, map_name_rect)
-
-        map_help_name = config.FONT_TINY.render('Press a or d to change the selected map', 1, colors.BLACK)
-        map_help_rect = map_help_name.get_rect(center=(preview_x, center_y + self.preview_size[1] * 0.5 + 15))
-        self.rendered['map_help'] = (map_help_name, map_help_rect)  # TODO this should be in render but whatever
-
     def render(self):
-        self.change_map(0)
         center_x, center_y = config.SCREEN_RECT.center
         left_start = center_x + 100
         args = [config.FONT_MED, list(map(lambda x: str(x), self.NUMBERS)), left_start, 35, False, center_y - 90]
@@ -138,9 +108,9 @@ class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview clas
         super().get_event(event)
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_a:
-                self.change_map(1)
+                self.board_preview.change_map(1)
             elif event.key == pg.K_d:
-                self.change_map(-1)
+                self.board_preview.change_map(-1)
 
     def pressed_exit(self):
         self.next = 'MAIN'
@@ -148,11 +118,10 @@ class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview clas
 
     def draw(self, screen, interpolate):
         self.image.fill(config.BACKGROUND_COLOR)
-        self.image.blit(*self.rendered['map_name'])
-        self.image.blit(*self.rendered['preview'])
         self.image.blit(*self.rendered['players_text'])
         self.image.blit(*self.rendered['bots_text'])
-        self.image.blit(*self.rendered['map_help'])
+        self.board_preview.draw(self.image)
+
         highlight = self.rendered['number_highlight']
         # draw the players and bots numbers
         for option_index, option in enumerate(['players', 'bots']):
@@ -163,7 +132,7 @@ class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview clas
                 if val == self.selected[option]:
                     self.image.blit(highlight, highlight.get_rect(center=(rect.center[0], rect.center[1]+2)))
                 self.image.blit(text, rect)
-        # draw the back start buttons
+        # draw the back and start buttons
         for i, val in enumerate([0, 1]):  # change it
             state = 'active' if self.index[1] == 2 + i else 'inactive'
             players = self.rendered['buttons']
@@ -174,20 +143,16 @@ class GameSetup(menu_utils.BidirectionalMenu):  # TODO create Board preview clas
     def pressed_enter(self):
         if self.index[1] == 0:  # change player no
             self.selected['players'] = self.index[0]
-            self.change_map(0)  # update player count
+            self.board_preview.change_map(0)  # update player count
         elif self.index[1] == 1:  # change bot no
             self.selected['bots'] = self.index[0]
         elif self.index[1] == 2:  # start button
-            self.persist = self.get_persist()
-            self.board.clear()
+            self.persist = self.get_map_settings()
+            self.board_preview.clear()
             self.quit = True
         elif self.index[1] == 3:  # back button
             self.next = 'MAIN'
             self.done = True
 
-    def get_persist(self):
-        return {
-            'players_no': self.selected['players'],
-            'bots_no': self.selected['bots'],
-            'map': self.current_map,
-        }
+    def get_map_settings(self):
+        return self.board_preview.get_settings()

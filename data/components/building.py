@@ -175,7 +175,8 @@ class Barracks(Building):
             hp = self.soldier_health[self.type]
             self.soldier_queue.append(Soldier(hp, dmg, self.type))
         else:
-            print(f"Player {self.owner.id} can't train new soldier!")
+            pass
+            # print(f"Player {self.owner.id} can't train new soldier!")
 
     def try_to_release_soldier(self):
         if self.can_release and len(self.soldier_queue) > 0:
