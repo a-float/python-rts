@@ -18,9 +18,9 @@ FONT_SMED = pg.font.SysFont("comicsansms", 35)
 FONT_SMALL = pg.font.SysFont("comicsansms", 22)
 FONT_TINY = pg.font.SysFont("comicsansms", 15)
 
-TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 9))
+TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 9.2))
 UNIT_SIZE = int(TILE_SIZE / 1.1)
-TILE_SPRITE_SIZE = TILE_SIZE - 6
+TILE_SPRITE_SIZE = TILE_SIZE - 4  # this offset needs to be even for the player marker to display symmetrically
 
 
 _screen.fill(colors.BLUE)
