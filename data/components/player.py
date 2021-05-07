@@ -52,8 +52,8 @@ class Player:
 
     def add_gold(self, amount):
         self.gold += amount
-        if self.id == 1:
-            print(f"Players {self.id} gold = {self.gold}")
+        # if self.id == 1:
+        #     print(f"Players {self.id} gold = {self.gold}")
 
     def build(self, building_name):
         if self.tile.owner == self and self.tile.building is None:

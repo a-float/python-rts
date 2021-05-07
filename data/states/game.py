@@ -7,7 +7,7 @@ import math
 import pygame as pg
 
 from data import state_machine, config, colors
-from data.components import board
+from data.components import board, UI
 
 
 class Game(state_machine.State):
@@ -17,9 +17,11 @@ class Game(state_machine.State):
         state_machine.State.__init__(self)
         self.board = board.Board()
         self.players = {}
+        self.UI = None
 
     def startup(self, now, persistent):
         self.players = self.board.initialize(persistent)
+        self.UI = UI.UI(self.players)
 
     def cleanup(self):
         self.done = False
@@ -37,12 +39,13 @@ class Game(state_machine.State):
 
     def update(self, keys, now):
         """Update phase for the primary game state."""
+        self.UI.update()
         self.board.update(now)
 
     def draw(self, surface, interpolate):
         """Draw level and sidebar; if player is dead draw death sequence."""
         surface.fill(colors.WHITE)
+        self.UI.draw(surface)
         for p in self.players.values():
             p.draw_marker(surface)
         self.board.draw(surface, interpolate)
-

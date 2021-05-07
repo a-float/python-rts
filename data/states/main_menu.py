@@ -143,6 +143,7 @@ class GameSetup(menu_utils.BidirectionalMenu):
     def pressed_enter(self):
         if self.index[1] == 0:  # change player no
             self.selected['players'] = self.index[0]
+            self.board_preview.set_player_counts(self.selected)
             self.board_preview.change_map(0)  # update player count
         elif self.index[1] == 1:  # change bot no
             self.selected['bots'] = self.index[0]

@@ -1,10 +1,10 @@
-import os
+import os, math
 import pygame as pg
 from . import colors, tools
 
 pg.init()  # its here to start loading everything up asap
 
-WIDTH, HEIGHT = (1280, 720)
+WIDTH, HEIGHT = (1280//2, 720//2)
 SCREEN_SIZE = (WIDTH, HEIGHT)
 SCREEN_RECT = pg.Rect((0, 0), SCREEN_SIZE)
 _screen = pg.display.set_mode(SCREEN_SIZE)
@@ -12,14 +12,16 @@ BACKGROUND_COLOR = colors.LIGHT_GRAY
 COLORKEY = (255, 0, 255)  # treated as alpha - bright purple
 
 # Display until loading finishes.
-FONT_BIG = pg.font.SysFont("comicsansms", 100)
+FONT_BIG = pg.font.SysFont("comicsansms", 100)  # chose a different font, maybe a monospace one
 FONT_MED = pg.font.SysFont("comicsansms", 50)
-FONT_SMALL = pg.font.SysFont("comicsansms", 20)
+FONT_SMED = pg.font.SysFont("comicsansms", 35)
+FONT_SMALL = pg.font.SysFont("comicsansms", 22)
 FONT_TINY = pg.font.SysFont("comicsansms", 15)
 
-TILE_SIZE = 100
-UNIT_SIZE = 100
-TILE_SPRITE_SIZE = 90
+TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 9))
+UNIT_SIZE = int(TILE_SIZE / 1.1)
+TILE_SPRITE_SIZE = TILE_SIZE - 6
+
 
 _screen.fill(colors.BLUE)
 _render = FONT_BIG.render("LOADING...", True, pg.Color("white"))

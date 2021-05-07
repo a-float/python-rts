@@ -173,6 +173,6 @@ class BoardPreview:
             'map': self.current_map
         }
 
-    def set_player_and_bots_no(self, new_counts: typing.Dict[str, int]):
+    def set_player_counts(self, new_counts: typing.Dict[str, int]):
         self.players_no = new_counts['players']
         self.bots_no = new_counts['bots']
