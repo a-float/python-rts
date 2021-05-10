@@ -48,6 +48,8 @@ class Control(object):
         """
         for event in pg.event.get():
             if event.type == pg.QUIT:
+                print('doing the cleanup')
+                self.state_machine.state.cleanup()
                 self.done = True
             elif event.type == pg.KEYDOWN:
                 self.keys = pg.key.get_pressed()

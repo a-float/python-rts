@@ -3,6 +3,7 @@ import sys
 import pygame as pg
 from data import menu_utils, state_machine, config, colors
 from data.components.board import Board
+from data.states.online_lobby import OnlineLobby, OnlineModeSelect
 
 
 class Menu(state_machine.State):
@@ -16,6 +17,8 @@ class Menu(state_machine.State):
         state_dict = {
             "MAIN": MainMenu(),
             "GAME_SETUP": GameSetup(),
+            'ONLINE_MODE_SELECT': OnlineModeSelect(),
+            'ONLINE_LOBBY': OnlineLobby()
         }
         self.state_machine.setup_states(state_dict, "MAIN")
 
@@ -32,13 +35,13 @@ class Menu(state_machine.State):
             print(self.persist)
 
     def draw(self, surface, interpolate):
-        surface.fill(config.BACKGROUND_COLOR)
+        # surface.fill(config.BACKGROUND_COLOR)
         self.state_machine.draw(surface, interpolate)
 
 
 class MainMenu(menu_utils.BasicMenu):
     def __init__(self):
-        self.ITEMS = ['START', 'OPTIONS', 'EXIT']
+        self.ITEMS = ['OFFLINE', 'ONLINE', 'EXIT']
         super().__init__(len(self.ITEMS))
         self.next = 'GAME_SETUP'
         start_y = config.SCREEN_RECT.height * 0.5
@@ -47,6 +50,7 @@ class MainMenu(menu_utils.BasicMenu):
         self.items = menu_utils.make_options(config.FONT_MED, self.ITEMS, start_y, 65)
 
     def draw(self, surface, interpolate):
+        surface.fill(config.BACKGROUND_COLOR)
         surface.blit(self.title, self.title_rect)
         for i, _ in enumerate(self.ITEMS):
             which = "active" if i == self.index else "inactive"
@@ -55,10 +59,12 @@ class MainMenu(menu_utils.BasicMenu):
 
     def pressed_enter(self):
         selected_item = self.ITEMS[self.index]
-        if selected_item == 'START':
+        if selected_item == 'OFFLINE':
+            self.next = 'GAME_SETUP'
             self.done = True
-        elif selected_item == 'OPTIONS':
-            self.quit = True  # TODO this
+        elif selected_item == 'ONLINE':
+            self.next = 'ONLINE_MODE_SELECT'
+            self.done = True
         elif selected_item == 'EXIT':
             pg.quit()
             sys.exit()
@@ -116,7 +122,7 @@ class GameSetup(menu_utils.BidirectionalMenu):
         self.next = 'MAIN'
         self.done = True
 
-    def draw(self, screen, interpolate):
+    def draw(self, screen, interpolate):  # TODO it doesnt have to redraw every frame
         self.image.fill(config.BACKGROUND_COLOR)
         self.image.blit(*self.rendered['players_text'])
         self.image.blit(*self.rendered['bots_text'])

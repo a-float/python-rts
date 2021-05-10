@@ -1,4 +1,6 @@
 import pygame as pg
+from typing import Dict
+from data.components.tile import Tile
 from data import colors
 from data import config
 from data.components.path import PathBuilder
@@ -8,19 +10,17 @@ class Player:
     """Class that allows the player to interact with the Board"""
 
     def __init__(self, player_no, tile, board):
-        self.base_color = colors.RED
-        self.is_dead = False
-        self.controls = config.DEFAULT_CONTROLS_1
-        self.gold = 0
-        self.income = 5
-        self.tile = tile
-        self.id = player_no
-        self.color = config.PLAYER_COLORS[player_no]
+        self.is_dead: bool = False
+        self.gold: int = 0
+        self.income: int = 5
+        self.tile: Tile = tile
+        self.id: int = player_no
+        self.color: (int, int, int) = config.PLAYER_COLORS[player_no]
         self.marker = PlayerMarker(self.color, tile.rect.center)
         self.board = board
-        self.controls = config.CONTROLS[player_no]
+        self.controls: Dict[str, str] = config.CONTROLS[player_no]
         self.path_builder = PathBuilder(self)
-        self.upgrade_mode = False
+        self.upgrade_mode: bool = False
 
     def handle_event(self, event):
         if event.type == pg.KEYDOWN:

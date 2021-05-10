@@ -15,6 +15,7 @@ class BasicMenu(state_machine.State):
         state_machine.State.__init__(self)
         self.option_length = option_length
         self.index = 0
+        self.dirty = True
 
     def get_event(self, event):
         """
@@ -24,13 +25,26 @@ class BasicMenu(state_machine.State):
             if event.key in (pg.K_DOWN, pg.K_RIGHT):
                 # config.SFX["dj-chronos__menu-nav-2"].play()
                 self.index = (self.index + 1) % self.option_length
+                self._on_move()
             elif event.key in (pg.K_UP, pg.K_LEFT):
                 # config.SFX["dj-chronos__menu-nav-2"].play()
                 self.index = (self.index - 1) % self.option_length
+                self._on_move()
             elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
                 self.pressed_enter()
             elif event.key in (pg.K_x, pg.K_ESCAPE):
                 self.pressed_exit()
+
+    def _on_move(self):
+        self.dirty = True
+
+    def draw(self, screen, interpolate):
+        if self.dirty:
+            self.dirty = False
+            self._draw(screen, interpolate)
+
+    def _draw(self, screen, interpolate):
+        pass
 
     def update(self, keys, now):
         pass
@@ -80,18 +94,18 @@ class BidirectionalMenu(state_machine.State):
         pass
 
 
-def render_font(font, msg, color, center):
+def render_font(font, msg, color, center) -> [pg.Surface, pg.Rect]:
     """Return the rendered font surface and its rect centered on center."""
     msg = font.render(msg, 1, color)
     rect = msg.get_rect(center=center)
     return msg, rect
 
 
-def make_text_list(font, strings, color, start, space, vertical=True, perp_center=None):
+def make_text_list(font, strings, colors, start, space, vertical=True, perp_center=None):
     """
     Takes a list of strings and returns a list of
     (rendered_surface, rect) tuples. The rects are centered on the screen
-    and their y coordinates begin at starty, with y_space pixels between
+    and their y coordinates begin at starty, with y_space pixels between  #TODO update the description
     each line.
     """
     if vertical:
@@ -104,6 +118,7 @@ def make_text_list(font, strings, color, start, space, vertical=True, perp_cente
             msg_center = (perp_center, start + i * space)
         else:
             msg_center = (start + i * space, perp_center)
+        color = colors[i] if type(colors) == list else colors  # TODO what if color is passed as a list [int, int, int]
         msg_data = render_font(font, string, color, msg_center)
         rendered_text.append(msg_data)
     return rendered_text
@@ -176,3 +191,45 @@ class BoardPreview:
     def set_player_counts(self, new_counts: typing.Dict[str, int]):
         self.players_no = new_counts['players']
         self.bots_no = new_counts['bots']
+
+
+class TextField(pg.sprite.Sprite):
+    def __init__(self, font: pg.font, bg_color: pg.Color, color: pg.Color, size: (int, int), center: (int, int)):
+        super().__init__()
+        self.image: pg.Surface = pg.Surface(size)
+        self.bg_color = bg_color
+        self.color = color
+        self.rect = self.image.get_rect(center=center)
+        self.content: str = ''
+        self.active: bool = False
+        self.font: pg.font = font
+        self.update_image()
+
+    def handle_event(self, event):
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_RETURN:
+                self.on_pressed_enter()
+            elif event.key == pg.K_ESCAPE:
+                self.on_pressed_exit()
+            elif event.key == pg.K_BACKSPACE:
+                self.content = self.content[:-1]
+            else:
+                self.content += event.unicode
+            self.update_image()
+
+    def update_image(self):
+        self.image.fill(self.bg_color)
+        text = self.font.render(self.content, True, self.color)
+        # midleft = self.image.get_rect().midleft
+        # left_padding = 5
+        self.image.blit(text, text.get_rect(center=self.image.get_rect().center))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def on_pressed_enter(self):
+        pass
+
+    def on_pressed_exit(self):
+        self.active = False
+

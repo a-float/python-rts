@@ -10,7 +10,7 @@ from data import state_machine, config, colors
 from data.components import board, UI
 
 
-class Game(state_machine.State):
+class OfflineGame(state_machine.State):
     """Core state for the actual gameplay."""
 
     def __init__(self):
