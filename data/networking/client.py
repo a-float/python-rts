@@ -5,30 +5,35 @@ from data.states.online_game import OnlineGame
 
 
 class Client:
-    def __init__(self, name):
-        # self.game: OnlineGame = game
+    def __init__(self, receiver, name: str, ip: str = '127.0.0.1'):
+        self.receiver = receiver
         self.name: str = name
+        self.ip = ip if ip != '' else '127.0.0.1'
         self.socket: socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.addr: (str, int) = ("192.168.56.1", 5555)
+        self.addr: (str, int) = (self.ip, 5555)
         self.player_id = self.connect()
+        self.running = True
         if self.player_id:
-            start_new_thread(threaded_client, (self.socket, print))
+            start_new_thread(threaded_client, (self.socket, lambda: self.running, self.receiver))
 
     def close(self):  # TODO implement it. Maybe make it a runnable class?
-        pass
+        self.send(f'quit:{self.player_id}')
+        self.running = False
 
     def get_player_id(self):
         return self.player_id
 
     def connect(self):
         try:
+            print('Connecting to address ', self.addr)
             self.socket.connect(self.addr)
-            print('Connected to addr ', self.addr)
-            res = self.socket.recv(2048).decode()
-            self.socket.sendall(str.encode(f'set_name:{self.player_id}:{self.name}'))
-            return res
-        except:
-            pass
+            print('Connected to address ', self.addr)
+            player_id = self.socket.recv(2048).decode()
+            print(f'received id {player_id}')
+            self.socket.sendall(str.encode(f'set_name:{player_id}:{self.name}'))
+            return player_id
+        except Exception as e:
+            print('Failed to connect to the server ', e)
 
     def send(self, data):
         try:
@@ -42,16 +47,17 @@ class Client:
             print(e)
 
 
-def threaded_client(conn, send_event):
-    while True:
+def threaded_client(conn, is_running, receiver):
+    while is_running():
         try:
-            data = conn.recv(4096)
+            data = conn.recv(4096*2)
             if not data:
                 break
             else:
-                send_event(pickle.loads(data))
-        except:
-            break
+                data = (pickle.loads(data))
+                receiver.handle_message(data)
+        except Exception as e:
+            print("Something went wrong ", e)
 
     print("Lost connection to the server")
     conn.close()

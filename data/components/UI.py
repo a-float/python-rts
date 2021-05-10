@@ -38,7 +38,7 @@ class UI(pg.sprite.Sprite):
         info.blit(gold_text, gold_text.get_rect(midtop=info.get_rect().midtop))
         info.blit(income_text, income_text.get_rect(midtop=info.get_rect().center))
 
-        print(kwargs)
+        # print(kwargs)
         self.info[player_no] = {
             'image': info,
             'rect': info.get_rect(**kwargs)

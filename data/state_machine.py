@@ -73,6 +73,7 @@ class State(object):
         self.next = None
         self.previous = None
         self.persist = {}
+        self.dirty = True
 
     def get_event(self, event):
         """
@@ -94,6 +95,7 @@ class State(object):
         Add variables that should persist to the self.persist dictionary.
         Then reset State.done to False.
         """
+        self.dirty = True
         self.done = False
         return self.persist
 

@@ -58,10 +58,10 @@ DEFAULT_CONTROLS_2 = {pg.K_s: "down",
                       }
 
 CONTROLS = {
-    1: DEFAULT_CONTROLS_1,
-    2: DEFAULT_CONTROLS_2,
-    3: None,
-    4: None
+    PLAYER_1: DEFAULT_CONTROLS_1,
+    PLAYER_2: DEFAULT_CONTROLS_2,
+    PLAYER_3: None,
+    PLAYER_4: None
 }
 INCOME = {
     'castle': 5,
@@ -112,10 +112,10 @@ ooooooooooo\n\
 }
 
 PLAYER_COLORS = {
-    1: colors.RED,
-    2: colors.BLUE,
-    3: colors.GREEN,
-    4: colors.YELLOW,
+    PLAYER_1: colors.RED,
+    PLAYER_2: colors.BLUE,
+    PLAYER_3: colors.GREEN,
+    PLAYER_4: colors.YELLOW,
 }
 
 

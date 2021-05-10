@@ -7,7 +7,7 @@ from data import menu_utils, config, colors
 from data.menu_utils import BasicMenu, BoardPreview
 from data.networking.server import Server, ClientData
 from data.networking.client import Client
-
+import sys
 
 class OnlineModeSelect(BasicMenu):
     def __init__(self):
@@ -21,6 +21,7 @@ class OnlineModeSelect(BasicMenu):
 
         args = [config.FONT_SMALL, colors.WHITE, colors.BLACK, (200, 50), (center_x, center_y * 1.7)]
         self.text_field = menu_utils.TextField(*args)
+        self.text_field.content = '127.0.0.1'
 
     def get_event(self, event):
         super().get_event(event)
@@ -56,7 +57,11 @@ class OnlineModeSelect(BasicMenu):
         self.text_field.draw(screen)
 
     def pressed_enter(self):
-        if self.index == 0:
+        if self.index in [0, 1]:
+            if self.index == 0:
+                self.persist = {'is_host': True}
+            elif self.index == 1:
+                self.persist = {'is_host': False, 'ip': self.text_field.content}
             self.next = 'ONLINE_LOBBY'
             self.done = True
 
@@ -82,25 +87,41 @@ class OnlineLobby(BasicMenu):
         self.render()
 
     def startup(self, now, persistent):
-        self.server = Server(self)
-        self.handle = self.server.run()
-        self.client = Client(names.get_first_name())
+        """
+        Starts up the clients and/or server threads
+        :param now: current time
+        :param persistent: dict with keys:
+            'is_host' -> should the server be created
+            'ip' -> ignored is 'is_host'  the server is not created and the client connects to the specified ip
+            'name' -> client's name # TODO
+        """
+        if persistent['is_host']:
+            self.server = Server(self)
+            self.handle = self.server.run()
+            self.client = Client(self, names.get_first_name())
+        else:
+            self.client = Client(self, names.get_first_name(), persistent['ip'])
 
     def cleanup(self):
-        self.client.close()
-        self.server.close()  # need to close the server and the client before closing the program
-        # state cleanup
-        self.done = False
-        return self.persist
+        if self.client:
+            print('closing the client')
+            self.client.close()
+        if self.server:
+            self.server.close()  # need to close the server and the client before closing the program
+        return super().cleanup()
 
     def render_players(self, clients: List[Optional[ClientData]]):
         center_x, center_y = config.SCREEN_RECT.center
 
-        strings = [f'{c.id}. {c.name} - {c.address}' for c in clients if c]
+        # print('clients are: ', clients)
+        strings = [f'{c.id}. {c.name} - {c.address[0]}' for c in clients if c]
         cols = [config.PLAYER_COLORS[c.id] for c in clients if c]
         args = [config.FONT_TINY, strings, cols, center_y * 0.38, 35, True, center_x * 1.48]
         self.rendered['players'] = menu_utils.make_text_list(*args)
-        print(self.rendered['players'])
+
+        self.board_preview.set_player_counts({'players':len(strings), 'bots':0})
+        self.board_preview.change_map(0)  # update player count
+
         self.dirty = True
 
     def render(self):
@@ -118,13 +139,21 @@ class OnlineLobby(BasicMenu):
         self.rendered['buttons'] = menu_utils.make_options(*args)
         self.rendered['players'] = []
 
+    def handle_message(self, message):
+        print('got message ', message)
+        if 'map_change' in message:
+            self.board_preview.change_map(message['map_change'])
+            self.dirty = True
+        elif 'players' in message:
+            self.render_players(message['players'])
+
     def get_event(self, event):
         super().get_event(event)
-        if event.type == pg.KEYDOWN:
+        if self.server and event.type == pg.KEYDOWN:
             if event.key == pg.K_a:
-                self.board_preview.change_map(1)
+                self.server.change_map(-1)
             elif event.key == pg.K_d:
-                self.board_preview.change_map(-1)
+                self.server.change_map(1)
 
     def pressed_exit(self):
         self.next = 'MAIN'

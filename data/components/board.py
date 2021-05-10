@@ -46,7 +46,7 @@ class Board:
                 if char != '.':
                     new_tile = Tile((offset_x+x * config.TILE_SIZE, offset_y+y*config.TILE_SIZE), self)
                     # TODO check if each of the numbers appears once
-                    if char in list([str(i) for i in range(1, self.settings['players_no']+1)]):
+                    if char in list([str(config.PLAYER_1 + i) for i in range(self.settings['players_no'])]):
                         new_tile.owner = self.create_player(players, int(char), new_tile)
                         castle_tiles.append(new_tile)  # castles are built after the neighbours are set
                     self.tiles[(x, y)] = new_tile
