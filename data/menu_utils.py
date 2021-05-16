@@ -1,5 +1,5 @@
 """
-Contains useful functionality for uni- and bi-directional menus.
+Contains functionality for uni and bidirectional menus as well as for the board preview and text field element.
 """
 
 import pygame as pg
@@ -12,7 +12,7 @@ class BasicMenu(state_machine.State):
     """Base class for basic uni-directional menus."""
 
     def __init__(self, option_length):
-        state_machine.State.__init__(self)
+        super().__init__()
         self.option_length = option_length
         self.index = 0
         self.dirty = True
@@ -206,6 +206,8 @@ class TextField(pg.sprite.Sprite):
         self.update_image()
 
     def handle_event(self, event):
+        if not self.active:
+            return
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_RETURN:
                 self.on_pressed_enter()

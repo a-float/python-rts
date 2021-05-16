@@ -34,6 +34,7 @@ class Server:
         self.server_socket.listen(4)
         print(f"Listening on {self.ip} : {self.port}")
 
+        self.socket_id_dict = {}
         self.clients: List[Optional[ClientData]] = [None] * 4
         self.read_list = [self.server_socket]
         self.running = True
@@ -51,13 +52,24 @@ class Server:
             if s != self.server_socket:
                 s.sendall(data)
 
-    def remove_client(self, client_id):
-        self.clients[client_id - 1] = None
+    def remove_client(self, sckt):
+        self.clients[self.socket_id_dict[sckt]] = None
+        del self.socket_id_dict[sckt]
         self.update_clients()
 
     def update_clients(self):
         print(self.clients)
         self.send_to_all(pickle.dumps({'players': self.clients}))
+
+    def add_client(self, sckt, addr):
+        new_id = self.get_id()
+        self.clients[new_id] = ClientData(id=new_id+1, address=addr)
+        self.socket_id_dict.update({sckt: new_id})
+        print(self.socket_id_dict)
+        self.read_list.append(sckt)
+        sckt.sendall(str.encode(str(new_id+1)))
+        self.update_clients()
+        print("Connection from", addr)
 
     def change_map(self, diff):
         self.send_to_all(pickle.dumps({'map_change': diff}))
@@ -70,22 +82,16 @@ class Server:
             for s in readable:
                 if s is self.server_socket:
                     client_socket, address = self.server_socket.accept()
-                    new_id = self.get_id()
-                    print('new id is ', new_id)
-                    self.clients[new_id] = ClientData(id=new_id+1, address=address)
-                    client_socket.sendall(str.encode(str(new_id+1)))
-                    self.update_clients()
-                    self.read_list.append(client_socket)
-                    print("Connection from", address)
+                    self.add_client(client_socket, address)
                 else:
                     data = s.recv(1024)
                     if data:
                         comms = data.decode().split(':')
-                        if comms[0] == 'set_name':  # command "set_name:id:name" - sets the player name
-                            self.clients[int(comms[1])-1].name = comms[2]
+                        if comms[0] == 'set_name':  # command "set_name:name" - sets the player name
+                            self.clients[self.socket_id_dict[s]].name = comms[1]
                             self.update_clients()
-                        if comms[0] == 'quit':  # command "quit:id" - player has quit
-                            self.remove_client(int(comms[1])-1)
+                        if comms[0] == 'quit':  # command "quit" - player has quit
+                            self.remove_client(s)
                             s.close()
                             self.read_list.remove(s)
                     else:

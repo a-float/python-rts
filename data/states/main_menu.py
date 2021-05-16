@@ -1,4 +1,5 @@
 import sys
+from typing import Any
 
 import pygame as pg
 from data import menu_utils, state_machine, config, colors
@@ -10,7 +11,7 @@ class Menu(state_machine.State):
     def __init__(self):
         super().__init__()
         self.next = "GAME"
-        self.state_machine = None
+        self.state_machine: Any[state_machine.StateMachine] = None
 
     def startup(self, now, persistent):
         self.state_machine = state_machine.StateMachine()
@@ -21,6 +22,7 @@ class Menu(state_machine.State):
             'ONLINE_LOBBY': OnlineLobby()
         }
         self.state_machine.setup_states(state_dict, "MAIN")
+        super().startup(now, {})
 
     def get_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -31,11 +33,11 @@ class Menu(state_machine.State):
         self.state_machine.update(keys, now)
         if self.state_machine.done:
             self.done = True
-            self.persist = self.state_machine.state.persist  # taking the persis out of this state machine
-            print(self.persist)
+            # taking the persist out of this state machine so it can be passed to the GAME state
+            self.persist = self.state_machine.state.persist
+            print('new MENU persist ', self.persist)
 
     def draw(self, surface, interpolate):
-        # surface.fill(config.BACKGROUND_COLOR)
         self.state_machine.draw(surface, interpolate)
 
 
@@ -48,6 +50,9 @@ class MainMenu(menu_utils.BasicMenu):
         self.title = config.FONT_BIG.render('Castillio', 1, colors.RED)
         self.title_rect = self.title.get_rect(midtop=(config.SCREEN_RECT.centerx, config.SCREEN_RECT.top + 20))
         self.items = menu_utils.make_options(config.FONT_MED, self.ITEMS, start_y, 65)
+
+    def startup(self, now, persistent):
+        pass
 
     def draw(self, surface, interpolate):
         surface.fill(config.BACKGROUND_COLOR)

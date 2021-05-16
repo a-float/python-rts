@@ -12,12 +12,13 @@ class Client:
         self.socket: socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.addr: (str, int) = (self.ip, 5555)
         self.player_id = self.connect()
-        self.running = True
+        self.running = False
         if self.player_id:
+            self.running = True
             start_new_thread(threaded_client, (self.socket, lambda: self.running, self.receiver))
 
     def close(self):  # TODO implement it. Maybe make it a runnable class?
-        self.send(f'quit:{self.player_id}')
+        self.send(f'quit')
         self.running = False
 
     def get_player_id(self):
@@ -26,14 +27,17 @@ class Client:
     def connect(self):
         try:
             print('Connecting to address ', self.addr)
+            self.socket.settimeout(3)
             self.socket.connect(self.addr)
+            self.socket.settimeout(None)
             print('Connected to address ', self.addr)
             player_id = self.socket.recv(2048).decode()
             print(f'received id {player_id}')
-            self.socket.sendall(str.encode(f'set_name:{player_id}:{self.name}'))
+            self.socket.sendall(str.encode(f'set_name:{self.name}'))
             return player_id
         except Exception as e:
             print('Failed to connect to the server ', e)
+            return None
 
     def send(self, data):
         try:

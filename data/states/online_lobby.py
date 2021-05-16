@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple, Any
 import names
 import socket
 
@@ -7,13 +7,16 @@ from data import menu_utils, config, colors
 from data.menu_utils import BasicMenu, BoardPreview
 from data.networking.server import Server, ClientData
 from data.networking.client import Client
-import sys
+from data import tools
+
 
 class OnlineModeSelect(BasicMenu):
     def __init__(self):
         super().__init__(3)
         center_x, center_y = config.SCREEN_RECT.center
         host, ip = self.get_ip()
+        self.notification: Any[Tuple[pg.Surface, pg.Rect]] = None
+
         self.head_surface = config.FONT_SMALL.render(f'Your ip is: {ip}', True, pg.Color('black'))
         self.head_rect = self.head_surface.get_rect(center=(center_x, center_y * 0.55))
 
@@ -22,6 +25,27 @@ class OnlineModeSelect(BasicMenu):
         args = [config.FONT_SMALL, colors.WHITE, colors.BLACK, (200, 50), (center_x, center_y * 1.7)]
         self.text_field = menu_utils.TextField(*args)
         self.text_field.content = '127.0.0.1'
+
+    def _set_notification(self, notify_text):
+        """
+        Set the notification attribute. If its not None, it's drawn on the screen
+        :param notify_text: The text to draw. If None, set notification to None to not draw it
+        """
+        if notify_text is None:
+            self.notification = None
+        else:
+            text = config.FONT_SMALL.render(notify_text, 1, pg.Color('red'))
+            rect = text.get_rect(centerx=config.WIDTH * 0.5, top=config.HEIGHT * 0.02)
+            self.notification = (text, rect)
+
+    def startup(self, now, persistent):
+        notify_text = persistent.get('notification', None)
+        self._set_notification(notify_text)
+        super().startup(now, persistent)
+
+    def cleanup(self):
+        self.notification = None
+        return super().cleanup()
 
     def get_event(self, event):
         super().get_event(event)
@@ -43,6 +67,10 @@ class OnlineModeSelect(BasicMenu):
 
     def _draw(self, screen, interpolate):
         screen.fill(config.BACKGROUND_COLOR)
+
+        # if exists, draw the notification
+        if self.notification:
+            screen.blit(*self.notification)
 
         # draw the hostname and ip address info
         screen.blit(self.head_surface, self.head_rect)
@@ -101,9 +129,13 @@ class OnlineLobby(BasicMenu):
             self.client = Client(self, names.get_first_name())
         else:
             self.client = Client(self, names.get_first_name(), persistent['ip'])
+            if not self.client.running:
+                self.next = 'ONLINE_MODE_SELECT'
+                self.persist.update({'notification': 'Could not connect to the server {}'.format(persistent['ip'])})
+                self.done = True
 
     def cleanup(self):
-        if self.client:
+        if self.client and self.client.running:
             print('closing the client')
             self.client.close()
         if self.server:
@@ -119,7 +151,7 @@ class OnlineLobby(BasicMenu):
         args = [config.FONT_TINY, strings, cols, center_y * 0.38, 35, True, center_x * 1.48]
         self.rendered['players'] = menu_utils.make_text_list(*args)
 
-        self.board_preview.set_player_counts({'players':len(strings), 'bots':0})
+        self.board_preview.set_player_counts({'players': len(strings), 'bots': 0})
         self.board_preview.change_map(0)  # update player count
 
         self.dirty = True

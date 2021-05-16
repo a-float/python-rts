@@ -5,7 +5,7 @@ Also contained here are resource loading functions.
 
 import os
 import pygame as pg
-
+import threading
 from data import state_machine
 
 TIME_PER_UPDATE = 16.0  # Milliseconds
@@ -48,7 +48,6 @@ class Control(object):
         """
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                print('doing the cleanup')
                 self.state_machine.state.cleanup()
                 self.done = True
             elif event.type == pg.KEYDOWN:
@@ -106,3 +105,13 @@ def load_all_gfx(directory, colorkey=(255, 0, 255), accept=(".png", ".jpg", ".bm
                 img.set_colorkey(colorkey)
             graphics[name] = img
     return graphics
+
+
+def set_interval(func, sec):
+    def func_wrapper():
+        set_interval(func, sec)
+        func()
+
+    t = threading.Timer(sec, func_wrapper)
+    t.start()
+    return t
