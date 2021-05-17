@@ -38,11 +38,7 @@ DEFAULT_CONTROLS_1 = {pg.K_DOWN: "down",
                       pg.K_LEFT: "left",
                       pg.K_RIGHT: "right",
                       pg.K_RETURN: "action",
-                      pg.K_i: "barracks",
-                      pg.K_o: "market",
-                      pg.K_p: "tower",
-                      pg.K_l: "upgrade",
-                      pg.K_k: "start_path"
+                      pg.K_p: "upgrade"
                       }
 
 DEFAULT_CONTROLS_2 = {pg.K_s: "down",
@@ -50,11 +46,7 @@ DEFAULT_CONTROLS_2 = {pg.K_s: "down",
                       pg.K_a: "left",
                       pg.K_d: "right",
                       pg.K_SPACE: "action",
-                      pg.K_q: "barracks",
-                      pg.K_e: "market",
-                      pg.K_r: "tower",
-                      pg.K_f: "upgrade",
-                      pg.K_g: "start_path"
+                      pg.K_q: "upgrade"
                       }
 
 CONTROLS = {
@@ -131,4 +123,4 @@ def load_gfx_from_dirs(dirs):
     return GFX
 
 
-gfx = load_gfx_from_dirs(['buildings', 'units'])
+gfx = load_gfx_from_dirs(['buildings', 'units', 'utils'])

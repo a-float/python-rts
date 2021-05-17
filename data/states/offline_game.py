@@ -49,3 +49,5 @@ class OfflineGame(state_machine.State):
         for p in self.players.values():
             p.draw_marker(surface)
         self.board.draw(surface, interpolate)
+        for p in self.players.values():
+            p.draw_menus(surface)
