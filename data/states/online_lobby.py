@@ -138,8 +138,9 @@ class OnlineLobby(BasicMenu):
         if self.client and self.client.running:
             print('closing the client')
             self.client.close()
-        if self.server:
-            self.server.close()  # need to close the server and the client before closing the program
+        if self.server and self.server.running:
+            print('closing the server')
+            self.server.close()  # close the server and the client before closing the program
         return super().cleanup()
 
     def render_players(self, clients: List[Optional[ClientData]]):
@@ -178,6 +179,8 @@ class OnlineLobby(BasicMenu):
             self.dirty = True
         elif 'players' in message:
             self.render_players(message['players'])
+        elif message == 'end':
+            self.pressed_exit()
 
     def get_event(self, event):
         super().get_event(event)
@@ -188,7 +191,7 @@ class OnlineLobby(BasicMenu):
                 self.server.change_map(1)
 
     def pressed_exit(self):
-        self.next = 'MAIN'
+        self.next = 'ONLINE_MODE_SELECT'
         self.done = True
 
     def _draw(self, screen, interpolate):
