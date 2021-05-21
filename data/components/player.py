@@ -4,6 +4,7 @@ from data.components.tile import Tile
 from data import colors
 from data import config
 from data.components.path import PathBuilder
+from data.components import building
 from data.components.building import Barracks, Tower, Market
 
 
@@ -83,12 +84,18 @@ class Player:
 
     def add_gold(self, amount):
         self.gold += amount
-        # if self.id == 1:
-        #     print(f"Players {self.id} gold = {self.gold}")
+
+    def change_income(self, income_diff):
+        self.income += income_diff
 
     def build(self, building_name):
         if self.tile.owner == self and self.tile.building is None:
-            self.board.build_on_tile(self.tile, building_name)
+            building_cost = building.BUILDING_DATA[building_name]['cost']
+            if building_cost < self.gold:
+                self.gold -= building_cost
+                self.board.build_on_tile(self.tile, building_name)
+            else:
+                print(f'Player {self.id} can\'t afford this building')
         else:
             print(f"Player {self.id} can't place buildings on this tile!")
 

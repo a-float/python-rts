@@ -4,11 +4,11 @@ from data.components.bullet import *
 from data import config, colors
 
 BUILDING_DATA = {
-    'castle': {'health': 1000, 'income': 5},
-    'tower': {'health': 200, 'cost': 200},
-    'barracks': {'health': 60, 'cost': 250},
-    'market': {'health': 150, 'cost': 250},
-    'path': {'health': 50, 'cost': 20}
+    'castle': {'health': 200, 'income': 5},
+    'tower': {'health': 200, 'cost': 10},
+    'barracks': {'health': 60, 'cost': 10},
+    'market': {'health': 30, 'cost': 5},
+    'path': {'health': 50, 'cost': 0}
 }
 
 UPGRADE_COST = 50
@@ -45,7 +45,6 @@ class Building(pg.sprite.Sprite):
         self.current_building_sprite = 0
         self.building_image = config.gfx['buildings'][img_name]
         self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,) * 2)
-
 
     def update(self, now):
         if not self.is_built:
@@ -154,20 +153,17 @@ class Tower(Building):
         self.bullet_image = config.gfx['utils']['default_bullet']
 
     def passive(self):
-        if self.timer > 0:
-            self.timer -= 1
-        else:
-            print('Paf paf i shoot')
-            for neigh in self.neighbours:
-                # attacks first soldier found
-                neigh = self.neighbours[neigh]
-                soldier = None
-                if neigh is not None:
-                    soldier = neigh.get_soldier(self.owner)
-                if soldier is not None:
-                    self.tile.board.add_bullet(Bullet(self.bullet_image, self, soldier, self.damage))
-                    self.timer = self.type_reload_time[self.type]
-                    break
+        for neigh in self.neighbours:
+            # attacks first soldier found
+            neigh = self.neighbours[neigh]
+            soldier = None
+            if neigh is not None:
+                soldier = neigh.get_soldier(self.owner)
+            if soldier is not None:
+                self.tile.board.add_bullet(Bullet(self.bullet_image, self, soldier, self.damage))
+                self.timer = self.type_reload_time[self.type]
+                print('Paf paf i shoot')
+                break
 
     def get_upgrade_types(self):
         if not self.is_built:
@@ -303,7 +299,7 @@ class Market(Building):
             'mine': 1,
             'bank': 2
         }
-        self.type_income = {  # TODO get type_income from BUILDING_DATA dict
+        self.type_income = {  # TODO get type_income from BUILDING_DATA dict - great idea
             0: 1,
             1: 2,
             2: 13
@@ -313,6 +309,7 @@ class Market(Building):
             1: 1,
             2: 4
         }
+        self.owner.change_income(self.type_income[self.type]/self.type_frequency[self.type])
         self.delay = self.type_frequency[self.type]
 
     def passive(self):
@@ -337,6 +334,14 @@ class Market(Building):
             self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
             self.is_built = False
             self.health = 0
+        self.owner.change_income(self.type_income[self.type]/self.type_frequency[self.type] -
+                                 self.type_income[0]/self.type_frequency[0])
+
+    def get_attacked(self, damage):
+        super().get_attacked(damage)
+        # update owner income on being destroyed
+        if self.health < 0:
+            self.owner.change_income(-self.type_income[self.type]/self.type_frequency[self.type])
 
 
 BUILDINGS = {

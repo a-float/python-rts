@@ -1,6 +1,3 @@
-from queue import LifoQueue
-from typing import Tuple
-
 from data.components.building import Barracks
 import pygame as pg
 from data import config, colors
