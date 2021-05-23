@@ -12,6 +12,7 @@ class Board:
         self.building_group = pg.sprite.Group()
         self.unit_group = pg.sprite.Group()
         self.path_group = pg.sprite.Group()
+        self.bullet_group = pg.sprite.Group()
         self.tiles = {}
         self.board_size = None
         self.settings = None
@@ -79,12 +80,16 @@ class Board:
     def add_unit(self, unit):
         self.unit_group.add(unit)
 
+    def add_bullet(self, bullet):
+        self.bullet_group.add(bullet)
+
     def handle_event(self, event):
         pass
 
     def update(self, now):
         self.tile_group.update()
         self.unit_group.update()
+        self.bullet_group.update()
         for building in self.building_group.sprites():
             building.update(now)
 
@@ -94,6 +99,7 @@ class Board:
         self.building_group.empty()
         self.path_group.empty()
         self.unit_group.empty()
+        self.bullet_group.empty()
 
     def draw(self, surface, interpolate):
         self.tile_group.draw(surface)
@@ -101,3 +107,8 @@ class Board:
 
         self.building_group.draw(surface)
         self.unit_group.draw(surface)
+        self.bullet_group.draw(surface)
+        for unit in self.unit_group.sprites():
+            unit.draw_health(surface)
+        for building in self.building_group.sprites():
+            building.draw_health(surface)
