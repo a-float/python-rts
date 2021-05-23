@@ -1,7 +1,6 @@
 import pygame as pg
-from typing import Dict
+from typing import Dict, Tuple
 from data.components.tile import Tile
-from data import colors
 from data import config
 from data.components.path import PathBuilder
 from data.components import building
@@ -13,61 +12,66 @@ class Player:
 
     def __init__(self, player_no, tile, board):
         self.is_dead: bool = False
-        self.gold: int = 0
+        self.gold: float = float('infinity')
         self.income: int = 5
-        self.tile: Tile = tile
+        self.tile: Tile = tile  # the tile player is currently pointing at
         self.id: int = player_no
         self.color: (int, int, int) = config.PLAYER_COLORS[player_no]
-        self.marker = PlayerMarker(self.color, tile.rect.center)
+        self.marker: PlayerMarker = PlayerMarker(self.color, tile.rect.center)
         self.board = board
         self.controls: Dict[str, str] = config.CONTROLS[player_no]
-        self.path_builder = PathBuilder(self)
         self.upgrade_mode: bool = False
-        self.build_mode = False
-        self.menu_image = None
-        self.menu_rect = None
+        self.build_mode: bool = False
+        self.build_menu_img: Tuple[pg.Surface, pg.Rect] = self.create_build_menu_image()
+        self.path_builder: PathBuilder = PathBuilder(self)
+        self.is_online: bool = False  # if True, the player can't be controlled via the keyboard
 
-    def handle_event(self, event):
+    def create_build_menu_image(self):
+        menu_image = config.gfx['utils']['build_menu']
+        menu_image = pg.transform.scale(menu_image, (config.TILE_SPRITE_SIZE * 5,) * 2)
+        # todo change menu place
+        menu_rect = self.tile.rect
+        return (menu_image, menu_rect)
+
+    def set_is_online(self, is_online):
+        self.is_online = is_online
+
+    def get_command_from_event(self, event):
         if event.type == pg.KEYDOWN:
-            if self.controls is None:
+            if self.controls is None or self.is_online:
                 # TODO controls for player no 3 and 4
-                return
+                return None
             if event.key in self.controls.keys():
                 command = self.controls[event.key]
+                return command
 
-                if self.upgrade_mode:
-                    self.upgrade_building(command)
-                elif self.path_builder.is_active:
-                    self.path_builder.handle_command(command)
-                elif self.build_mode:
-                    self.parse_build_command(command)
-                else:
-                    if command == 'action':
-                        # print("Player has performed an action")
-                        if self.tile.owner == self and self.tile.building is None:
-                            self.building_action()
-                        elif self.tile.owner == self and self.tile.building is not None:
-                            if isinstance(self.tile.building, Barracks):
-                                self.path_builder.init_path()
-                            else:
-                                self.tile.building.active()
-                        else:
-                            print(f"Player {self.id} doesn't have building on this tile!")
-                    elif command == 'upgrade':
-                        self.init_upgrade()
-                    elif command == 'start_path':
+    def execute_command(self, command):
+        if self.upgrade_mode:
+            self.upgrade_building(command)
+        elif self.path_builder.is_active:
+            self.path_builder.handle_command(command)
+        elif self.build_mode:
+            self.parse_build_command(command)
+        else:
+            if command == 'action':
+                # print("Player has performed an action")
+                if self.tile.owner == self and self.tile.building is None:
+                    self.build_mode = True
+                elif self.tile.owner == self and self.tile.building is not None:
+                    if isinstance(self.tile.building, Barracks):
                         self.path_builder.init_path()
-                    elif command in ['tower', 'barracks', 'market']:
-                        self.build(command)
-                    elif command in config.DIRECTIONS:
-                        self.move(command)
-
-    def building_action(self):
-        self.build_mode = True
-        self.menu_image = config.gfx['utils']['build_menu']
-        self.menu_image = pg.transform.scale(self.menu_image, (config.TILE_SPRITE_SIZE * 5,) * 2)
-                                                                            # todo change menu place
-        self.menu_rect = self.tile.rect
+                    else:
+                        self.tile.building.active()
+                else:
+                    print(f"Player {self.id} doesn't have building on this tile!")
+            elif command == 'upgrade':
+                self.init_upgrade()
+            elif command == 'start_path':
+                self.path_builder.init_path()
+            elif command in ['tower', 'barracks', 'market']:
+                self.build(command)
+            elif command in config.DIRECTIONS:
+                self.move(command)
 
     def parse_build_command(self, command):
         if command == 'up':
@@ -148,7 +152,7 @@ class Player:
 
     def draw_menus(self, surface):
         if self.build_mode or self.upgrade_mode:
-            surface.blit(self.menu_image, self.menu_rect)
+            surface.blit(*self.build_menu_img)
 
 
 class PlayerMarker(pg.sprite.Sprite):

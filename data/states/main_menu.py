@@ -5,7 +5,7 @@ import pygame as pg
 from data import menu_utils, state_machine, config, colors
 from data.components.board import Board
 from data.states.online_lobby import OnlineLobby, OnlineModeSelect
-
+from data.dataclasses import GameData, MapConfig
 
 class Menu(state_machine.State):
     def __init__(self):
@@ -35,7 +35,7 @@ class Menu(state_machine.State):
             self.done = True
             # taking the persist out of this state machine so it can be passed to the GAME state
             self.persist = self.state_machine.state.persist
-            print('new MENU persist ', self.persist)
+            # print('new MENU persist ', self.persist)
 
     def draw(self, surface, interpolate):
         self.state_machine.draw(surface, interpolate)
@@ -82,7 +82,7 @@ class GameSetup(menu_utils.BidirectionalMenu):
         self.image.set_colorkey(config.COLORKEY)
         self.image.fill(config.COLORKEY)
         self.selected = {'bots': 0, 'players': 2}
-        preview_size = (int(config.WIDTH*0.4), int(config.HEIGHT*0.4))
+        preview_size = (int(config.WIDTH*0.5), int(config.HEIGHT*0.5))
         self.board_preview = menu_utils.BoardPreview(self.selected['bots'], self.selected['players'], size=preview_size)
         self.NUMBERS = range(5)
         self.rendered = {}
@@ -159,12 +159,12 @@ class GameSetup(menu_utils.BidirectionalMenu):
         elif self.index[1] == 1:  # change bot no
             self.selected['bots'] = self.index[0]
         elif self.index[1] == 2:  # start button
-            self.persist = self.get_map_settings()
+            self.persist = {
+                'game_data': GameData(server=None, client=None,
+                                      map=self.board_preview.get_map_config())
+            }
             self.board_preview.clear()
             self.quit = True
         elif self.index[1] == 3:  # back button
             self.next = 'MAIN'
             self.done = True
-
-    def get_map_settings(self):
-        return self.board_preview.get_settings()

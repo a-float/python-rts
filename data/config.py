@@ -28,6 +28,8 @@ _render = FONT_BIG.render("LOADING...", True, pg.Color("white"))
 _screen.blit(_render, _render.get_rect(center=SCREEN_RECT.center))
 pg.display.update()
 
+MAX_PLAYERS = 4
+
 PLAYER_1 = 1
 PLAYER_2 = 2
 PLAYER_3 = 3

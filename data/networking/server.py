@@ -3,7 +3,7 @@ import select
 import threading
 import sys
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Dict
 import pickle
 
 
@@ -35,11 +35,15 @@ class Server:
         print(f"Listening on {self.ip} : {self.port}")
 
         self.socket_id_dict = {}
+        self.host_socket = None
         self.clients: List[Optional[ClientData]] = [None] * 4
         self.read_list = [self.server_socket]
         self.running = True
 
-    def get_id(self):
+    def get_client_count(self):
+        return len(self.socket_id_dict)
+
+    def _get_id(self):
         for i, v in enumerate(self.clients):
             if not v:
                 return i
@@ -53,7 +57,7 @@ class Server:
             if s != self.server_socket:
                 s.sendall(data)
 
-    def remove_client(self, sckt):
+    def _remove_client(self, sckt):
         self.clients[self.socket_id_dict[sckt]] = None
         del self.socket_id_dict[sckt]
         self.update_clients()
@@ -63,13 +67,15 @@ class Server:
         self.send_to_all(pickle.dumps({'players': self.clients}))
 
     def add_client(self, sckt, addr):
-        new_id = self.get_id()
+        new_id = self._get_id()
         self.clients[new_id] = ClientData(id=new_id+1, address=addr)
         self.socket_id_dict.update({sckt: new_id})
         print('socket_id_dict is now', self.socket_id_dict)
         self.read_list.append(sckt)
         sckt.sendall(str.encode(str(new_id+1)))
         self.update_clients()
+        if self.host_socket is None:
+            self.host_socket = sckt
         print("Connection from", addr)
 
     def change_map(self, diff):

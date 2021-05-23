@@ -1,7 +1,10 @@
+from typing import Optional, Tuple, Dict
+
 import pygame as pg
 from data import colors, config
 from data.components.tile import Tile
 from data.components.player import Player
+from data.dataclasses import MapConfig
 
 
 class Board:
@@ -13,9 +16,9 @@ class Board:
         self.unit_group = pg.sprite.Group()
         self.path_group = pg.sprite.Group()
         self.bullet_group = pg.sprite.Group()
-        self.tiles = {}
+        self.tiles: Dict[Tuple[int, int], Tile] = {}
         self.board_size = None
-        self.settings = None
+        self.settings: Optional[MapConfig] = None
 
     def _find_neighbours(self, tile_pos):
         results = {}
@@ -27,12 +30,11 @@ class Board:
                 results[name] = None
         return results
 
-    def initialize(self, settings):
+    def initialize(self, settings: MapConfig):
         self.settings = settings
-        board_string = settings['map'][1]
-        """ reads the shape of the map from the file for example """
+        board_string = self.settings.layout
+        # reads the shape of the map from the file
         self.board_size = (board_string.find('\n'), board_string.count('\n'))
-        # print("The board size is:", self.board_size)
         # calculate the offsets to draw the board in the center of the screen
         offset_x = config.WIDTH/2 - self.board_size[0]*config.TILE_SIZE//2
         offset_y = config.HEIGHT / 2 - self.board_size[1] * config.TILE_SIZE // 2
@@ -47,7 +49,7 @@ class Board:
                 if char != '.':
                     new_tile = Tile((offset_x+x * config.TILE_SIZE, offset_y+y*config.TILE_SIZE), self)
                     # TODO check if each of the numbers appears once
-                    if char in list([str(config.PLAYER_1 + i) for i in range(self.settings['players_no'])]):
+                    if char in list([str(config.PLAYER_1 + i) for i in range(self.settings.player_no)]):
                         new_tile.owner = self.create_player(players, int(char), new_tile)
                         castle_tiles.append(new_tile)  # castles are built after the neighbours are set
                     self.tiles[(x, y)] = new_tile
@@ -83,9 +85,6 @@ class Board:
     def add_bullet(self, bullet):
         self.bullet_group.add(bullet)
 
-    def handle_event(self, event):
-        pass
-
     def update(self, now):
         self.tile_group.update()
         self.unit_group.update()
@@ -101,14 +100,16 @@ class Board:
         self.unit_group.empty()
         self.bullet_group.empty()
 
-    def draw(self, surface, interpolate):
+    def draw(self, surface, interpolate, draw_health=True):
         self.tile_group.draw(surface)
         self.path_group.draw(surface)
 
         self.building_group.draw(surface)
         self.unit_group.draw(surface)
         self.bullet_group.draw(surface)
-        for unit in self.unit_group.sprites():
-            unit.draw_health(surface)
-        for building in self.building_group.sprites():
-            building.draw_health(surface)
+
+        if draw_health:
+            for unit in self.unit_group.sprites():
+                unit.draw_health(surface)
+            for building in self.building_group.sprites():
+                building.draw_health(surface)

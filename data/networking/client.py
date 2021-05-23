@@ -1,7 +1,6 @@
 import socket
 import pickle
 from _thread import *
-from data.states.online_game import OnlineGame
 
 
 class Client:
@@ -15,7 +14,7 @@ class Client:
         self.running = False
         if self.player_id:
             self.running = True
-            start_new_thread(threaded_client, (self.socket, lambda: self.running, self.receiver))
+            start_new_thread(threaded_client, (self.socket, lambda: self.running, lambda: self.receiver))
 
     def close(self):
         self.send(f'quit')
@@ -41,7 +40,7 @@ class Client:
 
     def send(self, data):
         try:
-            if type(data) == str:
+            if type(data) == str:  # TODO always pickle
                 print(f'sending a string: {data}')
                 self.socket.send(str.encode(data))
             else:
@@ -59,9 +58,10 @@ def threaded_client(conn, is_running, receiver):
                 break
             else:
                 data = (pickle.loads(data))
-                receiver.handle_message(data)
+                receiver().handle_message(data)
         except Exception as e:
             print("Something went wrong ", e)
+            break
 
     print("Lost connection to the server")
     conn.close()

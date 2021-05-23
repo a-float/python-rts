@@ -6,6 +6,7 @@ import pygame as pg
 import typing
 from . import config, state_machine, colors
 from data.components.board import Board
+from .dataclasses import MapConfig
 
 
 class BasicMenu(state_machine.State):
@@ -158,13 +159,13 @@ class BoardPreview:
         self.map_index = (self.map_index + diff) % len(self.maps)
         self.current_map = self.maps[self.map_index]
         self.board.clear()
-        self.board.initialize(self.get_settings())
+        self.board.initialize(self.get_map_config())
 
         center_x, center_y = config.SCREEN_RECT.center
 
         surface = pg.Surface(config.SCREEN_SIZE)
         surface.fill(colors.WHITE)
-        self.board.draw(surface, 0)
+        self.board.draw(surface, 0, draw_health=False)
         preview = pg.transform.scale(surface, self.preview_size)
         preview_x = max(35 + self.preview_size[0] * 0.5, center_x - self.preview_size[0] * 0.5 - 50)
         preview_rect = preview.get_rect(center=(preview_x, center_y))
@@ -181,16 +182,13 @@ class BoardPreview:
     def clear(self):
         self.board.clear()
 
-    def get_settings(self):
-        return {
-            'players_no': self.players_no,
-            'bots_no': self.bots_no,
-            'map': self.current_map
-        }
-
     def set_player_counts(self, new_counts: typing.Dict[str, int]):
         self.players_no = new_counts['players']
         self.bots_no = new_counts['bots']
+
+    def get_map_config(self):
+        return MapConfig(player_no=self.players_no, bots_no=self.bots_no,
+                         name=self.current_map[0], layout=self.current_map[1])
 
 
 class TextField(pg.sprite.Sprite):

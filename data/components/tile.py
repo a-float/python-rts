@@ -79,6 +79,3 @@ class Tile(pg.sprite.Sprite):
             else:
                 self.owner = ranking[0][0]
         self.image.fill(colors.LIGHT_GRAY if self.owner is None else self.owner.color)
-
-    def update(self):  # is called by the map
-        pass

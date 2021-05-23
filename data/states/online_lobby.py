@@ -1,13 +1,14 @@
+import pickle
 from typing import Optional, Dict, List, Tuple, Any
 import names
 import socket
 
 import pygame as pg
 from data import menu_utils, config, colors
+from data.dataclasses import GameData
 from data.menu_utils import BasicMenu, BoardPreview
 from data.networking.server import Server, ClientData
 from data.networking.client import Client
-from data import tools
 
 
 class OnlineModeSelect(BasicMenu):
@@ -108,7 +109,7 @@ class OnlineLobby(BasicMenu):
         # start with 0 bots and one player - host
         self.board_preview: BoardPreview = BoardPreview(0, 1, size=preview_size)
         self.rendered: Dict[str, (pg.Surface, pg.Rect)] = {}
-        self.board_preview.change_map(0)
+        self.board_preview.change_map(0) # TODO get actual online map
         self.server: Optional[Server] = None
         self.handle = None
         self.client: Optional[Client] = None
@@ -123,6 +124,7 @@ class OnlineLobby(BasicMenu):
             'ip' -> ignored is 'is_host'  the server is not created and the client connects to the specified ip
             'name' -> client's name # TODO
         """
+        print(persistent)
         if persistent['is_host']:
             self.server = Server(self)
             self.handle = self.server.run()
@@ -217,14 +219,20 @@ class OnlineLobby(BasicMenu):
 
     def pressed_enter(self):
         if self.index == 0:  # start button
-            # self.persist = self.get_map_settings()
-            # self.board_preview.clear()
-            # self.quit = True
-            self.client.send('blah blah KZ be cute af blah')
-            # self.server.running = False
+            if self.server is not None:
+                map_config = self.board_preview.get_map_config()
+                self.persist.update({
+                    'game_data': GameData(server=self.server, client=self.client,
+                                          map=map_config)
+                })
+                self.server.send_to_all(pickle.dumps({'init':map_config}))
+                self.quit = True  # leave the menu state manager and start the game
         elif self.index == 1:  # back button
             self.next = 'ONLINE_MODE_SELECT'
             self.done = True
 
-    def get_map_settings(self):
-        return self.board_preview.get_settings()
+    def start_game(self, map):
+        self.persist.update({
+            'game_data': GameData(server=self.server, client=self.client, map=map)
+        })
+        self.quit = True  # leave the menu state manager and start the game
