@@ -36,7 +36,6 @@ class Tile(pg.sprite.Sprite):
     def build(self, building_name):
         """gets the building object from a dict? from config? from building.py?"""
         self.building = building.BUILDINGS[building_name](self)
-
         self.increase_ownership(self.owner)
         self.update_owner()
 

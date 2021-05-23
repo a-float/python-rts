@@ -31,7 +31,7 @@ class Player:
         menu_image = pg.transform.scale(menu_image, (config.TILE_SPRITE_SIZE * 5,) * 2)
         # todo change menu place
         menu_rect = self.tile.rect
-        return (menu_image, menu_rect)
+        return menu_image, menu_rect
 
     def set_is_online(self, is_online):
         self.is_online = is_online
@@ -151,8 +151,10 @@ class Player:
         surface.blit(self.marker.image, self.marker.rect)
 
     def draw_menus(self, surface):
-        if self.build_mode or self.upgrade_mode:
+        if self.build_mode:
             surface.blit(*self.build_menu_img)
+        if self.upgrade_mode:
+            surface.blit(self.menu_image, self.menu_rect)
 
 
 class PlayerMarker(pg.sprite.Sprite):

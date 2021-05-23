@@ -1,17 +1,8 @@
 import pygame as pg
 from data.components.soldier import *
 from data.components.bullet import *
+from data.components.building_stats import *
 from data import config, colors
-
-BUILDING_DATA = {
-    'castle': {'health': 200, 'income': 5},
-    'tower': {'health': 200, 'cost': 10},
-    'barracks': {'health': 60, 'cost': 10},
-    'market': {'health': 30, 'cost': 5},
-    'path': {'health': 50, 'cost': 0}
-}
-
-UPGRADE_COST = 50
 
 
 class Building(pg.sprite.Sprite):
@@ -24,7 +15,7 @@ class Building(pg.sprite.Sprite):
         self.buildable = True
         self.is_destroyed = False
         self.is_built = False
-        self.building_timer = 10
+        # self.building_timer = 10
         self.last_action_time = 0
         self.delay = 1
         self.tile = tile
@@ -51,12 +42,13 @@ class Building(pg.sprite.Sprite):
             if self.health < self.max_health:
                 self.image = self.building_sprites[self.current_building_sprite]
                 self.image = pg.transform.scale(self.image, (config.TILE_SPRITE_SIZE,) * 2)
-                self.health += 1
+                self.health += BUILDING_SPEED
                 if self.health % 10 == 0:
                     self.current_building_sprite += 1
                 if self.current_building_sprite >= len(self.building_sprites):
                     self.current_building_sprite = 0
             else:
+                self.health = self.max_health
                 self.image = self.building_image
                 self.is_built = True
 
@@ -90,11 +82,7 @@ class Building(pg.sprite.Sprite):
 
     @staticmethod
     def to_dict():
-        return {
-            'Tower': Tower,
-            'Barracks': Barracks,
-            'Market': Market,
-        }
+        return BUILDINGS
 
     def draw_health(self, surface):
         if self.damage_timer > 0:
@@ -139,17 +127,8 @@ class Tower(Building):
         self.type = 0
         self.max_health = BUILDING_DATA['tower']['health']
         self.health = 0
-        self.upgrade_types = {
-            'sniper': 1,
-            'magic': 2
-        }
-        self.type_reload_time = {
-            0: 4,
-            1: 4,
-            2: 2
-        }
         self.timer = 0
-        self.damage = 50
+        self.damage = TOWER_DAMAGE
         self.bullet_image = config.gfx['utils']['default_bullet']
 
     def passive(self):
@@ -161,19 +140,19 @@ class Tower(Building):
                 soldier = neigh.get_soldier(self.owner)
             if soldier is not None:
                 self.tile.board.add_bullet(Bullet(self.bullet_image, self, soldier, self.damage))
-                self.timer = self.type_reload_time[self.type]
+                self.timer = TOWER_RELOAD_TIME[self.type]
                 print('Paf paf i shoot')
                 break
 
     def get_upgrade_types(self):
         if not self.is_built:
             return []
-        return list(self.upgrade_types.keys()) if self.type == 0 else []
+        return list(UPGRADE_TYPES['tower'].keys()) if self.type == 0 else []
 
     def upgrade(self, upgrade_type):
         if not self.is_built:
             return
-        if self.upgrade_types[upgrade_type] == 1:
+        if UPGRADE_TYPES['tower'][upgrade_type] == 1:
             self.type = 1
             if self.neighbours['up'] is not None:
                 neigh = self.neighbours['up'].neighbours['up']
@@ -198,7 +177,7 @@ class Tower(Building):
             self.is_built = False
             self.health = 0
 
-        if self.upgrade_types[upgrade_type] == 2:
+        if UPGRADE_TYPES['tower'][upgrade_type] == 2:
             self.type = 2
             self.building_image = config.gfx['buildings']['magic_tower']
             self.bullet_image = config.gfx['utils']['magic_sphere']
@@ -220,26 +199,12 @@ class Barracks(Building):
         self.max_health = BUILDING_DATA['barracks']['health']
         self.health = 0
         self.delay = 0.5
-        self.upgrade_types = {
-            'swords': 1,
-            'shields': 2
-        }
-        self.soldier_damage = {
-            0: 20,
-            1: 40,
-            2: 20
-        }
-        self.soldier_health = {
-            0: 50,
-            1: 50,
-            2: 100
-        }
 
     def try_to_train_soldiers(self):
         if self.owner.gold >= self.soldier_cost and len(self.soldier_queue) < 3:
             self.owner.gold -= self.soldier_cost
-            dmg = self.soldier_damage[self.type]
-            hp = self.soldier_health[self.type]
+            dmg = SOLDIER_STATS['damage'][self.type]
+            hp = SOLDIER_STATS['health'][self.type]
             self.soldier_queue.append(Soldier(hp, dmg, self.type))
         else:
             pass
@@ -259,7 +224,7 @@ class Barracks(Building):
     def get_upgrade_types(self):
         if not self.is_built:
             return []
-        return list(self.upgrade_types.keys()) if self.type == 0 else []
+        return list(UPGRADE_TYPES['barracks'].keys()) if self.type == 0 else []
 
     def get_attacked(self, damage):
         if not self.is_built:
@@ -276,8 +241,8 @@ class Barracks(Building):
     def upgrade(self, upgrade_type):
         if not self.is_built:
             return
-        self.type = self.upgrade_types[upgrade_type]
-        if self.type == self.upgrade_types["shields"]:
+        self.type = UPGRADE_TYPES['barracks'][upgrade_type]
+        if self.type == UPGRADE_TYPES['barracks']['shields']:
             self.building_image = config.gfx['buildings']['shield_barracks']
             self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
             self.is_built = False
@@ -295,36 +260,22 @@ class Market(Building):
         self.type = 0
         self.max_health = BUILDING_DATA['market']['health']
         self.health = 0
-        self.upgrade_types = {
-            'mine': 1,
-            'bank': 2
-        }
-        self.type_income = {  # TODO get type_income from BUILDING_DATA dict - great idea
-            0: 1,
-            1: 2,
-            2: 13
-        }
-        self.type_frequency = {  # TODO maybe this as well
-            0: 1,
-            1: 1,
-            2: 4
-        }
-        self.owner.change_income(self.type_income[self.type]/self.type_frequency[self.type])
-        self.delay = self.type_frequency[self.type]
+        self.owner.change_income(MARKET_STATS['income'][self.type] / MARKET_STATS['frequency'][self.type])
+        self.delay = MARKET_STATS['frequency'][self.type]
 
     def passive(self):
-        self.owner.add_gold(self.type_income[self.type])
+        self.owner.add_gold(MARKET_STATS['income'][self.type])
 
     def get_upgrade_types(self):
         if not self.is_built:
             return []
-        return list(self.upgrade_types.keys()) if self.type == 0 else []
+        return list(UPGRADE_TYPES['market'].keys()) if self.type == 0 else []
 
     def upgrade(self, upgrade_type):
         if not self.is_built:
             return
-        self.type = self.upgrade_types[upgrade_type]
-        if self.type == self.upgrade_types["bank"]:
+        self.type = UPGRADE_TYPES['market'][upgrade_type]
+        if self.type == UPGRADE_TYPES['market']['bank']:
             self.building_image = config.gfx['buildings']['bank']
             self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
             self.is_built = False
@@ -334,19 +285,19 @@ class Market(Building):
             self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
             self.is_built = False
             self.health = 0
-        self.owner.change_income(self.type_income[self.type]/self.type_frequency[self.type] -
-                                 self.type_income[0]/self.type_frequency[0])
+        self.owner.change_income(MARKET_STATS['income'][self.type]/MARKET_STATS['frequency'][self.type] -
+                                 MARKET_STATS['income'][0]/MARKET_STATS['frequency'][0])
 
     def get_attacked(self, damage):
         super().get_attacked(damage)
         # update owner income on being destroyed
         if self.health < 0:
-            self.owner.change_income(-self.type_income[self.type]/self.type_frequency[self.type])
+            self.owner.change_income(-MARKET_STATS['income'][self.type]/MARKET_STATS['frequency'][self.type])
 
 
 BUILDINGS = {
     'castle': Castle,
     'tower': Tower,
     'barracks': Barracks,
-    'market': Market
+    'market': Market,
 }
