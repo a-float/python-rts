@@ -26,7 +26,7 @@ def threaded(fn):
 class Server:
     def __init__(self, receiver):
         self.receiver = receiver
-        self.ip = '127.0.0.1'
+        self.ip = ''
         self.port = 5555
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
