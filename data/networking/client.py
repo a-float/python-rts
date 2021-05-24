@@ -16,7 +16,7 @@ class Client:
             self.running = True
             start_new_thread(threaded_client, (self.socket, lambda: self.running, lambda: self.receiver))
 
-    def close(self):
+    def close(self):  # TODO implement it. Maybe make it a runnable class?
         self.send(f'quit')
         self.running = False
 

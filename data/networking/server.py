@@ -51,7 +51,6 @@ class Server:
 
     def close(self):
         self.running = False
-        print('SERVER IS BEING CLOSED')
 
     def send_to_all(self, data):
         for s in self.read_list:
@@ -72,7 +71,7 @@ class Server:
         new_id = self._get_id()
         self.clients[new_id] = ClientData(id=new_id+1, address=addr)
         self.socket_id_dict.update({sckt: new_id})
-        print('socket_id_dict is now', self.socket_id_dict)
+        # print(self.socket_id_dict)
         self.read_list.append(sckt)
         sckt.sendall(str.encode(str(new_id+1)))
         self.update_clients()
@@ -88,7 +87,6 @@ class Server:
     @threaded
     def run(self):
         while self.running:
-            print(self.running)
             sys.stdout.flush()
             readable, writable, errored = select.select(self.read_list, [], [], 1)
             for s in readable:
@@ -97,19 +95,19 @@ class Server:
                     self.add_client(client_socket, address)
                 else:
                     data = s.recv(1024)
-                    print('SERVER RECEIVED ',data)
                     if data:
                         comms = data.decode().split(':')
                         if comms[0] == 'set_name':  # command "set_name:name" - sets the player name
                             self.clients[self.socket_id_dict[s]].name = comms[1]
                             self.update_clients()
-                        if comms[0] == 'quit':  # command "quit" - player has quit
-                            self.read_list.remove(s)
+                        elif comms[0] == 'quit':  # command "quit" - player has quit
+                            self._remove_client(s)
                             s.close()
-                            self.remove_client(s)
-
+                            self.read_list.remove(s)
+                        elif comms[0] == 'action':  # command "kdown:command_name" - player has made a valid action
+                            payload = ('action', self.socket_id_dict[s]+1, comms[1])
+                            self.send_to_all(pickle.dumps(payload))
                     else:
                         s.close()
                         self.read_list.remove(s)
-        self.send_to_all(pickle.dumps('end'))
         print('The server has stopped')

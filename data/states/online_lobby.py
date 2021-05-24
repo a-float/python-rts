@@ -185,8 +185,10 @@ class OnlineLobby(BasicMenu):
             self.dirty = True
         elif 'players' in message:
             self.render_players(message['players'])
-        elif message == 'end':
-            self.pressed_exit()
+        elif 'stats' in message:  # {'stats': building stats dict)}
+            building_stats.read_stats_dict(message['stats'])
+        elif 'init' in message:  # {'init': map (MapConfig)}
+            self.start_game(message['init'])
 
     def get_event(self, event):
         super().get_event(event)
@@ -198,7 +200,7 @@ class OnlineLobby(BasicMenu):
                 self.server.set_map(self.board_preview.map_index + 1)
 
     def pressed_exit(self):
-        self.next = 'ONLINE_MODE_SELECT'
+        self.next = 'MAIN'
         self.done = True
 
     def _draw(self, screen, interpolate):
