@@ -28,9 +28,9 @@ class Player:
 
     def create_build_menu_image(self):
         menu_image = config.gfx['utils']['build_menu']
-        menu_image = pg.transform.scale(menu_image, (config.TILE_SPRITE_SIZE * 5,) * 2)
+        menu_image = pg.transform.smoothscale(menu_image, (config.TILE_SPRITE_SIZE * 4,) * 2)
         # todo change menu place
-        menu_rect = self.tile.rect
+        menu_rect = menu_image.get_rect(center = self.tile.rect.center)
         return [menu_image, menu_rect]
 
     def set_is_online(self, is_online):
@@ -59,7 +59,7 @@ class Player:
                 # print("Player has performed an action")
                 if self.tile.owner == self and self.tile.building is None:
                     self.build_mode = True
-                    self.menu_image[1] = self.menu_image[0].get_rect(center=self.tile.rect.center)
+                    self.menu_image = self.create_build_menu_image()
                 elif self.tile.owner == self and self.tile.building is not None:
                     if isinstance(self.tile.building, Barracks):
                         self.path_builder.init_path()
@@ -129,7 +129,7 @@ class Player:
                     self.menu_image[0] = config.gfx['utils']['tower_upgrade_menu']
                 elif isinstance(self.tile.building, Barracks):
                     self.menu_image[0] = config.gfx['utils']['barracks_upgrade_menu']
-                self.menu_image[0] = pg.transform.scale(self.menu_image[0], (config.TILE_SPRITE_SIZE * 5,) * 2)
+                self.menu_image[0] = pg.transform.smoothscale(self.menu_image[0], (config.TILE_SPRITE_SIZE * 5,) * 2)
             else:
                 print("Can't upgrade building")
         else:

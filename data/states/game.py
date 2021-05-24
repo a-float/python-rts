@@ -35,6 +35,9 @@ class Game(state_machine.State):
         self.client, self.server = settings.client, settings.server
         if self.client:
             self.client.receiver = self
+            for p in self.players.values():
+                if p.id != self.client.player_id:
+                    p.is_online = True
 
         self.players = self.board.initialize(settings.map)
         self.UI = UI.UI(self.players)

@@ -21,9 +21,9 @@ class UI(pg.sprite.Sprite):
         }
         for k in self.players:
             self.draw_dynamic_info(k)
-        text = f'tower: {data["tower"]["cost"]}g market: {data["market"]["cost"]}g barracks: {data["barracks"]["cost"]}g'
+        text = f'Costs: tower: {data["tower"]["cost"]}g market: {data["market"]["cost"]}g barracks: {data["barracks"]["cost"]}g'
         self.bottom_info = config.FONT_SMALL.render(text, 1, pg.Color('black'))
-        self.bottom_info_rect = self.bottom_info.get_rect(centerx=config.SCREEN_RECT.centerx, bottom=config.SCREEN_RECT.bottom-10)
+        self.bottom_info_rect = self.bottom_info.get_rect(centerx=config.SCREEN_RECT.centerx, bottom=config.SCREEN_RECT.bottom-20)
 
     def draw_dynamic_info(self, player_no: int):
         # big enough but not too big

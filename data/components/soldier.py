@@ -126,7 +126,7 @@ class Soldier(pg.sprite.Sprite):
 
     def draw_health(self, surface):
         if self.damage_timer > 0:
-            surface.blit(self.damage_image, self.damage_rect)
+            surface.blit(self.damage_image, self.rect)
             self.damage_timer -= 1
         health_ratio = self.health / self.max_health
         health_img = pg.Surface((int(health_ratio * config.TILE_SPRITE_SIZE*0.6), int(config.TILE_SPRITE_SIZE * 0.12)))

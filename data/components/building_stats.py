@@ -21,7 +21,7 @@ TOWER_RELOAD_TIME = {
     2: 2
 }
 
-TOWER_DAMAGE = 50
+TOWER_DAMAGE = 25
 
 MARKET_STATS = {
     'income': {0: 1, 1: 2, 2: 13},

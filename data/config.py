@@ -4,7 +4,7 @@ from . import colors, tools
 
 pg.init()  # its here to start loading everything up asap
 
-WIDTH, HEIGHT = (int(1280/1.5), int(720/1.5))
+WIDTH, HEIGHT = (int(1280/1.2), int(720/1.2))
 SCREEN_SIZE = (WIDTH, HEIGHT)
 SCREEN_RECT = pg.Rect((0, 0), SCREEN_SIZE)
 _screen = pg.display.set_mode(SCREEN_SIZE)

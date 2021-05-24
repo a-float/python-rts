@@ -63,8 +63,8 @@ class MainMenu(menu_utils.BasicMenu):
         pass
 
     def draw(self, surface, interpolate):
-        # surface.fill(config.BACKGROUND_COLOR)
-        surface.blit(self.bg, config.SCREEN_RECT)
+        surface.fill(config.BACKGROUND_COLOR)
+        # surface.blit(self.bg, config.SCREEN_RECT)
         surface.blit(self.title, self.title_rect)
         for i, _ in enumerate(self.ITEMS):
             which = "active" if i == self.index else "inactive"
