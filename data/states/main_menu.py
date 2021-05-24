@@ -7,6 +7,7 @@ from data.components.board import Board
 from data.states.online_lobby import OnlineLobby, OnlineModeSelect
 from data.dataclasses import GameData, MapConfig
 
+
 class Menu(state_machine.State):
     def __init__(self):
         super().__init__()
@@ -23,6 +24,10 @@ class Menu(state_machine.State):
         }
         self.state_machine.setup_states(state_dict, "MAIN")
         super().startup(now, {})
+
+    def cleanup(self):
+        self.state_machine.state.cleanup()
+        return super().cleanup()
 
     def get_event(self, event):
         if event.type == pg.KEYDOWN:

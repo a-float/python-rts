@@ -155,11 +155,19 @@ class BoardPreview:
         surface.blit(*self.rendered['preview'])
         surface.blit(*self.rendered['map_help'])
 
+    def set_map(self, index):
+        self.map_index = index % len(self.maps)
+        self.current_map = self.maps[self.map_index]
+        self._redraw()
+
     def change_map(self, diff):
         self.map_index = (self.map_index + diff) % len(self.maps)
         self.current_map = self.maps[self.map_index]
+        self._redraw()
+
+    def _redraw(self):
         self.board.clear()
-        self.board.initialize(self.get_map_config())
+        self.board.initialize(self.get_map_config(), config.TILE_SIZE * 1.24)
 
         center_x, center_y = config.SCREEN_RECT.center
 

@@ -23,9 +23,6 @@ class Building(pg.sprite.Sprite):
         self.image = config.gfx['buildings'][img_name]
         self.image = pg.transform.scale(self.image, (config.TILE_SPRITE_SIZE,) * 2)
         self.rect = self.image.get_rect(center=tile.rect.center)
-        self.health_rect = self.rect
-        self.health_image = config.gfx['utils']['full_hp']
-        self.health_image = pg.transform.scale(self.health_image, (config.TILE_SPRITE_SIZE,) * 2)
         self.damage_timer = 0
         self.damage_image = config.gfx['utils']['boom']
         self.damage_image = pg.transform.scale(self.damage_image, (config.TILE_SPRITE_SIZE,) * 2)
@@ -36,6 +33,7 @@ class Building(pg.sprite.Sprite):
         self.current_building_sprite = 0
         self.building_image = config.gfx['buildings'][img_name]
         self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,) * 2)
+        self.images = {}
 
     def update(self, now):
         if not self.is_built:
@@ -68,7 +66,7 @@ class Building(pg.sprite.Sprite):
         pass
 
     def get_upgrade_types(self):
-        return None
+        return []
 
     def get_attacked(self, damage):
         if not self.is_built:
@@ -89,21 +87,20 @@ class Building(pg.sprite.Sprite):
             surface.blit(self.damage_image, self.damage_rect)
             self.damage_timer -= 1
         health_ratio = self.health / self.max_health
+        health_img = pg.Surface((int(health_ratio*config.TILE_SPRITE_SIZE), int(config.TILE_SPRITE_SIZE*0.12)))
         if health_ratio >= 0.8:
-            self.health_image = config.gfx['utils']['full_hp']
-
+            col = (0,255,0)
         elif health_ratio >= 0.6:
-            self.health_image = config.gfx['utils']['almost_full']
+            col = (50, 200, 0)
         elif health_ratio >= 0.4:
-            self.health_image = config.gfx['utils']['medium_hp']
+            col = (100, 150, 0)
         elif health_ratio >= 0.2:
-            self.health_image = config.gfx['utils']['low_hp']
+            col = (200, 50, 0)
         else:
-            self.health_image = config.gfx['utils']['critical_hp']
-
-        self.health_image = pg.transform.scale(self.health_image, (config.TILE_SPRITE_SIZE,) * 2)
-
-        surface.blit(self.health_image, self.health_rect)
+            col = (255, 0, 0)
+        health_img.fill(col)
+        health_rect = health_img.get_rect(centerx=self.tile.rect.centerx, top=self.tile.rect.top+5)
+        surface.blit(health_img, health_rect)
 
 
 class Castle(Building):
@@ -117,6 +114,10 @@ class Castle(Building):
 
     def passive(self):
         self.owner.add_gold(self.basic_income)
+
+    def get_attacked(self, damage):
+        if self.health < 0:
+            self.owner.die()
 
 
 class Tower(Building):
@@ -198,7 +199,7 @@ class Barracks(Building):
         self.soldier_cost = 20
         self.max_health = BUILDING_DATA['barracks']['health']
         self.health = 0
-        self.delay = 0.5
+        self.delay = 2
 
     def try_to_train_soldiers(self):
         if self.owner.gold >= self.soldier_cost and len(self.soldier_queue) < 3:
@@ -224,7 +225,9 @@ class Barracks(Building):
     def get_upgrade_types(self):
         if not self.is_built:
             return []
-        return list(UPGRADE_TYPES['barracks'].keys()) if self.type == 0 else []
+        res = list(UPGRADE_TYPES['barracks'].keys()) if self.type == 0 else []
+        print('res is ', res)
+        return res
 
     def get_attacked(self, damage):
         if not self.is_built:

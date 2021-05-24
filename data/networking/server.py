@@ -39,6 +39,7 @@ class Server:
         self.clients: List[Optional[ClientData]] = [None] * 4
         self.read_list = [self.server_socket]
         self.running = True
+        self.current_map_index = 0
 
     def get_client_count(self):
         return len(self.socket_id_dict)
@@ -59,11 +60,12 @@ class Server:
 
     def _remove_client(self, sckt):
         self.clients[self.socket_id_dict[sckt]] = None
+        print(self.clients)
         del self.socket_id_dict[sckt]
         self.update_clients()
 
     def update_clients(self):
-        print(self.clients)
+        # print(self.clients)
         self.send_to_all(pickle.dumps({'players': self.clients}))
 
     def add_client(self, sckt, addr):
@@ -74,12 +76,14 @@ class Server:
         self.read_list.append(sckt)
         sckt.sendall(str.encode(str(new_id+1)))
         self.update_clients()
+        sckt.sendall(pickle.dumps({'set_map': self.current_map_index}))
         if self.host_socket is None:
             self.host_socket = sckt
         print("Connection from", addr)
 
-    def change_map(self, diff):
-        self.send_to_all(pickle.dumps({'map_change': diff}))
+    def set_map(self, index):
+        self.current_map_index = index
+        self.send_to_all(pickle.dumps({'set_map': index}))
 
     @threaded
     def run(self):

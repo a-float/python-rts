@@ -1,6 +1,7 @@
 import pygame as pg
 import math
 
+
 class Bullet(pg.sprite.Sprite):
     def __init__(self, image, source, target, damage):
         pg.sprite.Sprite.__init__(self)
@@ -33,7 +34,7 @@ class Bullet(pg.sprite.Sprite):
             self.kill()
         else:
             self.max_life -= 1
-        if dist_sq(self.rect.center, self.target_center) >= 1:
+        if dist_sq(self.rect.center, self.target_center) >= 25:
             self.rect.move_ip(*self.move_vector)
         else:
             self.target.get_attacked(self.damage)

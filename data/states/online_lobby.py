@@ -9,7 +9,7 @@ from data.dataclasses import GameData
 from data.menu_utils import BasicMenu, BoardPreview
 from data.networking.server import Server, ClientData
 from data.networking.client import Client
-
+from data.components import building_stats
 
 class OnlineModeSelect(BasicMenu):
     def __init__(self):
@@ -113,6 +113,8 @@ class OnlineLobby(BasicMenu):
         self.server: Optional[Server] = None
         self.handle = None
         self.client: Optional[Client] = None
+        self.is_host: bool = False
+        self.preserve_network = False
         self.render()
 
     def startup(self, now, persistent):
@@ -126,6 +128,7 @@ class OnlineLobby(BasicMenu):
         """
         print(persistent)
         if persistent['is_host']:
+            self.is_host = True
             self.server = Server(self)
             self.handle = self.server.run()
             self.client = Client(self, names.get_first_name())
@@ -137,13 +140,14 @@ class OnlineLobby(BasicMenu):
                 self.done = True
 
     def cleanup(self):
-        if self.client and self.client.running:
-            print('closing the client')
-            self.client.close()
-        if self.server and self.server.running:
-            print('closing the server')
-            self.server.close()  # close the server and the client before closing the program
-        return super().cleanup()
+        if not self.preserve_network:
+            print('im cleaning up the network')
+            if self.client and self.client.running:
+                print('closing the client')
+                self.client.close()
+            if self.server:
+                self.server.close()  # need to close the server and the client before closing the program
+            return super().cleanup()
 
     def render_players(self, clients: List[Optional[ClientData]]):
         center_x, center_y = config.SCREEN_RECT.center
@@ -176,8 +180,8 @@ class OnlineLobby(BasicMenu):
 
     def handle_message(self, message):
         print('got message ', message)
-        if 'map_change' in message:
-            self.board_preview.change_map(message['map_change'])
+        if 'set_map' in message:
+            self.board_preview.set_map(message['set_map'])
             self.dirty = True
         elif 'players' in message:
             self.render_players(message['players'])
@@ -187,10 +191,11 @@ class OnlineLobby(BasicMenu):
     def get_event(self, event):
         super().get_event(event)
         if self.server and event.type == pg.KEYDOWN:
+            print('working')
             if event.key == pg.K_a:
-                self.server.change_map(-1)
+                self.server.set_map(self.board_preview.map_index - 1)
             elif event.key == pg.K_d:
-                self.server.change_map(1)
+                self.server.set_map(self.board_preview.map_index + 1)
 
     def pressed_exit(self):
         self.next = 'ONLINE_MODE_SELECT'
@@ -211,6 +216,8 @@ class OnlineLobby(BasicMenu):
 
         # draw the back and start buttons
         for i, val in enumerate([0, 1]):  # change it
+            if not self.is_host and i == 0:
+                continue
             state = 'active' if self.index == i else 'inactive'
             buttons = self.rendered['buttons']
             text, rect = buttons[state][i]
@@ -225,14 +232,17 @@ class OnlineLobby(BasicMenu):
                     'game_data': GameData(server=self.server, client=self.client,
                                           map=map_config)
                 })
-                self.server.send_to_all(pickle.dumps({'init':map_config}))
+                self.server.send_to_all(pickle.dumps({'stats': building_stats.get_stats_dict()}))
+                self.server.send_to_all(pickle.dumps({'init': map_config}))
+                self.preserve_network = True
                 self.quit = True  # leave the menu state manager and start the game
         elif self.index == 1:  # back button
             self.next = 'ONLINE_MODE_SELECT'
             self.done = True
 
-    def start_game(self, map):
+    def start_game(self, map_config):
         self.persist.update({
-            'game_data': GameData(server=self.server, client=self.client, map=map)
+            'game_data': GameData(server=self.server, client=self.client, map=map_config)
         })
+        self.preserve_network = True
         self.quit = True  # leave the menu state manager and start the game

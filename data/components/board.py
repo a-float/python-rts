@@ -30,14 +30,14 @@ class Board:
                 results[name] = None
         return results
 
-    def initialize(self, settings: MapConfig):
+    def initialize(self, settings: MapConfig, tile_size=config.TILE_SIZE):
         self.settings = settings
         board_string = self.settings.layout
         # reads the shape of the map from the file
         self.board_size = (board_string.find('\n'), board_string.count('\n'))
         # calculate the offsets to draw the board in the center of the screen
-        offset_x = config.WIDTH/2 - self.board_size[0]*config.TILE_SIZE//2
-        offset_y = config.HEIGHT / 2 - self.board_size[1] * config.TILE_SIZE // 2
+        offset_x = config.WIDTH/2 - self.board_size[0]*tile_size//2
+        offset_y = config.HEIGHT / 2 - self.board_size[1] * tile_size//2
 
         players = {}
         castle_tiles = []
@@ -47,7 +47,7 @@ class Board:
                 raise ValueError(f'Invalid board string. Faulty row: {y}. "{row}"')
             for x, char in enumerate(row):
                 if char != '.':
-                    new_tile = Tile((offset_x+x * config.TILE_SIZE, offset_y+y*config.TILE_SIZE), self)
+                    new_tile = Tile((offset_x+x * tile_size, offset_y+y*tile_size), self, tile_size-4)
                     # TODO check if each of the numbers appears once
                     if char in list([str(config.PLAYER_1 + i) for i in range(self.settings.player_no)]):
                         new_tile.owner = self.create_player(players, int(char), new_tile)

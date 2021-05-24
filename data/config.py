@@ -4,7 +4,7 @@ from . import colors, tools
 
 pg.init()  # its here to start loading everything up asap
 
-WIDTH, HEIGHT = (1280//2, 720//2)
+WIDTH, HEIGHT = (int(1280/1.5), int(720/1.5))
 SCREEN_SIZE = (WIDTH, HEIGHT)
 SCREEN_RECT = pg.Rect((0, 0), SCREEN_SIZE)
 _screen = pg.display.set_mode(SCREEN_SIZE)
@@ -18,9 +18,11 @@ FONT_SMED = pg.font.SysFont("comicsansms", 35)
 FONT_SMALL = pg.font.SysFont("comicsansms", 22)
 FONT_TINY = pg.font.SysFont("comicsansms", 15)
 
-TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 9.2))
-UNIT_SIZE = int(TILE_SIZE / 1.1)
-TILE_SPRITE_SIZE = TILE_SIZE - 4  # this offset needs to be even for the player marker to display symmetrically
+TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 8.36))
+
+UNIT_SIZE = int(TILE_SIZE / 1.8)
+TILE_SPRITE_SIZE = TILE_SIZE - 10  # this offset needs to be even for the player marker to display symmetrically
+# not used rn
 
 
 _screen.fill(colors.BLUE)
