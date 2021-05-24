@@ -147,7 +147,7 @@ class OnlineLobby(BasicMenu):
                 self.client.close()
             if self.server:
                 self.server.close()  # need to close the server and the client before closing the program
-            return super().cleanup()
+        return super().cleanup()
 
     def render_players(self, clients: List[Optional[ClientData]]):
         center_x, center_y = config.SCREEN_RECT.center

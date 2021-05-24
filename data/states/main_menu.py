@@ -56,11 +56,15 @@ class MainMenu(menu_utils.BasicMenu):
         self.title_rect = self.title.get_rect(midtop=(config.SCREEN_RECT.centerx, config.SCREEN_RECT.top + 20))
         self.items = menu_utils.make_options(config.FONT_MED, self.ITEMS, start_y, 65)
 
+        bg = config.gfx['utils']['bg']
+        self.bg = pg.transform.scale(bg, config.SCREEN_RECT.size)
+
     def startup(self, now, persistent):
         pass
 
     def draw(self, surface, interpolate):
-        surface.fill(config.BACKGROUND_COLOR)
+        # surface.fill(config.BACKGROUND_COLOR)
+        surface.blit(self.bg, config.SCREEN_RECT)
         surface.blit(self.title, self.title_rect)
         for i, _ in enumerate(self.ITEMS):
             which = "active" if i == self.index else "inactive"
