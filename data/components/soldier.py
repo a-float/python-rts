@@ -125,27 +125,24 @@ class Soldier(pg.sprite.Sprite):
             self.kill()
 
     def draw_health(self, surface):
-        self.damage_rect = self.rect
         if self.damage_timer > 0:
             surface.blit(self.damage_image, self.damage_rect)
             self.damage_timer -= 1
         health_ratio = self.health / self.max_health
-        self.health_rect = self.rect
+        health_img = pg.Surface((int(health_ratio * config.TILE_SPRITE_SIZE*0.6), int(config.TILE_SPRITE_SIZE * 0.12)))
         if health_ratio >= 0.8:
-            self.health_image = config.gfx['utils']['full_hp']
-
+            col = (0, 255, 0)
         elif health_ratio >= 0.6:
-            self.health_image = config.gfx['utils']['almost_full']
+            col = (50, 200, 0)
         elif health_ratio >= 0.4:
-            self.health_image = config.gfx['utils']['medium_hp']
+            col = (100, 150, 0)
         elif health_ratio >= 0.2:
-            self.health_image = config.gfx['utils']['low_hp']
+            col = (200, 50, 0)
         else:
-            self.health_image = config.gfx['utils']['critical_hp']
-
-        self.health_image = pg.transform.scale(self.health_image, (config.TILE_SPRITE_SIZE,) * 2)
-
-        surface.blit(self.health_image, self.health_rect)
+            col = (255, 0, 0)
+        health_img.fill(col)
+        health_rect = health_img.get_rect(centerx=self.rect.centerx, top=self.rect.top - 4)
+        surface.blit(health_img, health_rect)
 
 
 def dist_sq(pos1, pos2):

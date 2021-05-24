@@ -1,6 +1,7 @@
 import pygame as pg
 import data.config as config
 from data.components.player import Player
+from data.components.building_stats import BUILDING_DATA as data
 from typing import Dict
 
 
@@ -20,6 +21,9 @@ class UI(pg.sprite.Sprite):
         }
         for k in self.players:
             self.draw_dynamic_info(k)
+        text = f'tower: {data["tower"]["cost"]}g market: {data["market"]["cost"]}g barracks: {data["barracks"]["cost"]}g'
+        self.bottom_info = config.FONT_SMALL.render(text, 1, pg.Color('black'))
+        self.bottom_info_rect = self.bottom_info.get_rect(centerx=config.SCREEN_RECT.centerx, bottom=config.SCREEN_RECT.bottom-10)
 
     def draw_dynamic_info(self, player_no: int):
         # big enough but not too big
@@ -52,3 +56,4 @@ class UI(pg.sprite.Sprite):
     def draw(self, surface):
         for k in self.players:
             surface.blit(self.info[k]['image'], self.info[k]['rect'])
+        surface.blit(self.bottom_info, self.bottom_info_rect)

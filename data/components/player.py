@@ -12,7 +12,7 @@ class Player:
 
     def __init__(self, player_no, tile, board):
         self.lost: bool = False
-        self.gold: float = float('infinity')
+        self.gold: float = 0
         self.income: int = 5
         self.tile: Tile = tile  # the tile player is currently pointing at
         self.id: int = player_no
