@@ -1,26 +1,26 @@
-import pygame as pg
-from data.components.soldier import *
+from data.components.soldier import Soldier, pos_to_relative
 from data.components.bullet import *
 from data.components.building_stats import *
-from data import config, colors
+from data import config
 
 
 class Building(pg.sprite.Sprite):
-    def __init__(self, tile, img_name):
+    def __init__(self, tile, building_name):
         super().__init__()
+        self.name = building_name
         self.max_health = 0
         self.health = 0
         self.cost = 0
         self.can_be_attacked = True
-        self.buildable = True
-        self.is_destroyed = False
         self.is_built = False
+        self.owner = tile.owner
         # self.building_timer = 10
         self.last_action_time = 0
         self.delay = 1
         self.tile = tile
-        self.owner = tile.owner
-        self.image = config.gfx['buildings'][img_name]
+        self.max_health = BUILDING_DATA[self.name]['health']
+
+        self.image = config.gfx['buildings'][building_name]
         self.image = pg.transform.scale(self.image, (config.TILE_SPRITE_SIZE,) * 2)
         self.rect = self.image.get_rect(center=tile.rect.center)
         self.damage_timer = 0
@@ -31,14 +31,16 @@ class Building(pg.sprite.Sprite):
         self.building_sprites.append(config.gfx['utils']['building_anim'])
         self.building_sprites.append(config.gfx['utils']['building_anim_2'])
         self.current_building_sprite = 0
-        self.building_image = config.gfx['buildings'][img_name]
+        # TODO this same as self.image???
+        self.building_image = config.gfx['buildings'][building_name]
         self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,) * 2)
-        self.images = {}
+        self.images = {}  # TODO this is not used anywhere?
 
     def update(self, now):
         if not self.is_built:
             if self.health < self.max_health:
                 self.image = self.building_sprites[self.current_building_sprite]
+                # TODO should not scale in update
                 self.image = pg.transform.scale(self.image, (config.TILE_SPRITE_SIZE,) * 2)
                 self.health += BUILDING_SPEED
                 if self.health % 10 == 0:
@@ -54,6 +56,11 @@ class Building(pg.sprite.Sprite):
             self.last_action_time = now
             self.passive()
 
+    def get_upgrade_types(self):
+        if not self.is_built:
+            return []
+        return UPGRADE_TYPES.get(self.name, [])
+
     def passive(self):
         # It is called every self.delay seconds
         pass
@@ -62,25 +69,34 @@ class Building(pg.sprite.Sprite):
         # It is called whenever action button is pressed on this field
         pass
 
-    def upgrade(self, upgrade_type):
+    def upgrade(self, upgrade_name):
+        """ Changes building to one of its upgrades. Returns true if the upgrade_name was valid """
+        if not self.is_built:
+            return False
+        if upgrade_name in self.get_upgrade_types():
+            self.get_destroyed()
+            new_building = BUILDINGS[upgrade_name](self.tile)
+            new_building.health = self.health
+            new_building.tile = self.tile
+            new_building.is_built = False
+            self.pass_to_upgraded_building(new_building)
+            self.tile.board.replace_tile_building(self.tile, new_building)
+            return True
+
+    def pass_to_upgraded_building(self, new_building):
         pass
 
-    def get_upgrade_types(self):
-        return []
+    def get_destroyed(self):
+        self.tile.building = None
+        self.kill()
 
     def get_attacked(self, damage):
         if not self.is_built:
             return
-        print("Building got ", damage, " damage")
         self.health -= damage
         self.damage_timer = 10
         if self.health <= 0:
-            self.tile.building = None
-            self.kill()
-
-    @staticmethod
-    def to_dict():
-        return BUILDINGS
+            self.get_destroyed()
 
     def draw_health(self, surface):
         if self.damage_timer > 0:
@@ -88,16 +104,7 @@ class Building(pg.sprite.Sprite):
             self.damage_timer -= 1
         health_ratio = self.health / self.max_health
         health_img = pg.Surface((int(health_ratio*config.TILE_SPRITE_SIZE), int(config.TILE_SPRITE_SIZE*0.12)))
-        if health_ratio >= 0.8:
-            col = (0,255,0)
-        elif health_ratio >= 0.6:
-            col = (50, 200, 0)
-        elif health_ratio >= 0.4:
-            col = (100, 150, 0)
-        elif health_ratio >= 0.2:
-            col = (200, 50, 0)
-        else:
-            col = (255, 0, 0)
+        col = [250 * (1 - health_ratio), health_ratio * 250, 0]
         health_img.fill(col)
         health_rect = health_img.get_rect(centerx=self.tile.rect.centerx, top=self.tile.rect.top+5)
         surface.blit(health_img, health_rect)
@@ -106,128 +113,69 @@ class Building(pg.sprite.Sprite):
 class Castle(Building):
     def __init__(self, tile):
         super().__init__(tile, 'castle')
-        self.health = self.max_health = BUILDING_DATA['castle']['health']
-        self.tile = tile
-        self.basic_income = BUILDING_DATA['castle']['income']  # TODO make income a static class variable
-        self.tile = tile
-        self.buildable = False
+        self.is_built = True
 
     def passive(self):
-        self.owner.add_gold(self.basic_income)
+        self.owner.add_gold(BUILDING_DATA['castle']['income'])
 
-    def get_attacked(self, damage):
-        if self.health < 0:
-            self.owner.die()
+    def get_destroyed(self):
+        self.owner.lose()
 
 
 class Tower(Building):
-    def __init__(self, tile):
-        super().__init__(tile, 'tower')
+    def __init__(self, tile, building_name='tower'):
+        super().__init__(tile, building_name)
         self.tile = tile
         self.neighbours = tile.neighbours
-        self.type = 0
-        self.max_health = BUILDING_DATA['tower']['health']
-        self.health = 0
-        self.timer = 0
-        self.damage = TOWER_DAMAGE
-        self.bullet_image = config.gfx['utils']['default_bullet']
+        self.fire_rate = BUILDING_DATA[self.name]['fire_rate']
+        self.damage = BUILDING_DATA[self.name]['damage']
+        self.range = BUILDING_DATA[self.name]['range']
+        self.bullet_image = config.gfx['utils'][self.name.split('_')[0]+'_bullet']
 
     def passive(self):
-        for neigh in self.neighbours:
-            # attacks first soldier found
-            neigh = self.neighbours[neigh]
-            soldier = None
-            if neigh is not None:
-                soldier = neigh.get_soldier(self.owner)
-            if soldier is not None:
-                self.tile.board.add_bullet(Bullet(self.bullet_image, self, soldier, self.damage))
-                self.timer = TOWER_RELOAD_TIME[self.type]
+        for soldier in self.tile.board.unit_group.sprites():
+            if dist_sq(pos_to_relative(soldier.rect.center), pos_to_relative(self.rect.center)) < self.range:
+                self.tile.board.add_bullet(Bullet(self.bullet_image, self.rect.center, soldier, self.damage))
+                self.delay = 1/self.fire_rate
                 print('Paf paf i shoot')
                 break
 
-    def get_upgrade_types(self):
-        if not self.is_built:
-            return []
-        return list(UPGRADE_TYPES['tower'].keys()) if self.type == 0 else []
 
-    def upgrade(self, upgrade_type):
-        if not self.is_built:
-            return
-        if UPGRADE_TYPES['tower'][upgrade_type] == 1:
-            self.type = 1
-            if self.neighbours['up'] is not None:
-                neigh = self.neighbours['up'].neighbours['up']
-                if neigh is not None:
-                    self.neighbours['up_up'] = neigh
-            if self.neighbours['right'] is not None:
-                neigh = self.neighbours['right'].neighbours['right']
-                if neigh is not None:
-                    self.neighbours['right_right'] = neigh
-            if self.neighbours['down'] is not None:
-                neigh = self.neighbours['down'].neighbours['down']
-                if neigh is not None:
-                    self.neighbours['down_down'] = neigh
-            if self.neighbours['left'] is not None:
-                neigh = self.neighbours['left'].neighbours['left']
-                if neigh is not None:
-                    self.neighbours['left_left'] = neigh
-            self.building_image = config.gfx['buildings']['sniper_tower']
-            self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
-            self.bullet_image = config.gfx['utils']['arrow']
-            self.bullet_image = pg.transform.scale(self.bullet_image, (config.TILE_SPRITE_SIZE,)*2)
-            self.is_built = False
-            self.health = 0
+class SniperTower(Tower):
+    def __init__(self, tile):
+        super().__init__(tile, 'sniper_tower')
 
-        if UPGRADE_TYPES['tower'][upgrade_type] == 2:
-            self.type = 2
-            self.building_image = config.gfx['buildings']['magic_tower']
-            self.bullet_image = config.gfx['utils']['magic_sphere']
-            self.bullet_image = pg.transform.scale(self.bullet_image, (config.TILE_SPRITE_SIZE,)*2)
-            self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
-            self.is_built = False
-            self.health = 0
+
+class MagicTower(Tower):
+    def __init__(self, tile):
+        super().__init__(tile, 'magic_tower')
 
 
 class Barracks(Building):
-    def __init__(self, tile):
-        super().__init__(tile, 'barracks')
+    def __init__(self, tile, building_name='barracks'):
+        super().__init__(tile, building_name)
         self.tile = tile
         self.path_sprite = None
         self.can_release = False
         self.soldier_queue = []
-        self.type = 0
-        self.soldier_cost = 20
-        self.max_health = BUILDING_DATA['barracks']['health']
-        self.health = 0
         self.delay = 2
+        self.soldier_name = self.name.split('_')[0]
 
     def try_to_train_soldiers(self):
-        if self.owner.gold >= self.soldier_cost and len(self.soldier_queue) < 3:
-            self.owner.gold -= self.soldier_cost
-            dmg = SOLDIER_STATS['damage'][self.type]
-            hp = SOLDIER_STATS['health'][self.type]
-            self.soldier_queue.append(Soldier(hp, dmg, self.type))
-        else:
-            pass
-            # print(f"Player {self.owner.id} can't train new soldier!")
+        if len(self.soldier_queue) < 3:
+            soldier = Soldier(self.soldier_name)
+            self.soldier_queue.append(soldier)
 
     def try_to_release_soldier(self):
         if self.can_release and len(self.soldier_queue) > 0:
             soldier = self.soldier_queue.pop(0)
             soldier.release(self.tile.paths[self.owner.id])
             self.tile.board.add_unit(soldier)
-            print(f"Releasing a players {soldier.owner.id} soldier")
+            print(f"Releasing a players {soldier.tile.owner.id} soldier")
 
     def passive(self):
         self.try_to_train_soldiers()
         self.try_to_release_soldier()
-
-    def get_upgrade_types(self):
-        if not self.is_built:
-            return []
-        res = list(UPGRADE_TYPES['barracks'].keys()) if self.type == 0 else []
-        print('res is ', res)
-        return res
 
     def get_attacked(self, damage):
         if not self.is_built:
@@ -235,72 +183,68 @@ class Barracks(Building):
         self.health -= damage
         print("Get attacked DMG: ", damage)
         if self.health <= 0:
+            self.get_destroyed()
+
+    def get_destroyed(self):
+        super().get_destroyed()
+        if self.health <= 0:  # don't destroy the path if the barracks are getting upgraded
             path = self.tile.paths[self.owner.id]
             if path:
                 path.destroy()
-            self.tile.building = None
-            self.kill()
 
-    def upgrade(self, upgrade_type):
-        if not self.is_built:
-            return
-        self.type = UPGRADE_TYPES['barracks'][upgrade_type]
-        if self.type == UPGRADE_TYPES['barracks']['shields']:
-            self.building_image = config.gfx['buildings']['shield_barracks']
-            self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
-            self.is_built = False
-            self.health = 0
-        else:
-            self.building_image = config.gfx['buildings']['sword_barracks']
-            self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
-            self.is_built = False
-            self.health = 0
+    def pass_to_upgraded_building(self, new_building):
+        new_building.path_sprite = self.path_sprite
+        new_building.can_release = self.can_release
+
+
+class SwordBarracks(Barracks):
+    def __init__(self, tile):
+        super().__init__(tile, 'swords_barracks')
+
+
+class ShieldBarracks(Barracks):
+    def __init__(self, tile):
+        super().__init__(tile, 'shields_barracks')
 
 
 class Market(Building):
-    def __init__(self, tile):
-        super().__init__(tile, 'market')
-        self.type = 0
-        self.max_health = BUILDING_DATA['market']['health']
-        self.health = 0
-        self.owner.change_income(MARKET_STATS['income'][self.type] / MARKET_STATS['frequency'][self.type])
-        self.delay = MARKET_STATS['frequency'][self.type]
+    def __init__(self, tile, building_name='market'):
+        super().__init__(tile, building_name)
+        self.income = BUILDING_DATA[self.name].get('income', 0)
+        self.frequency = BUILDING_DATA[self.name].get('frequency', 1)
+        self.owner.change_income(self.income / self.frequency)
 
-    def passive(self):
-        self.owner.add_gold(MARKET_STATS['income'][self.type])
-
-    def get_upgrade_types(self):
-        if not self.is_built:
-            return []
-        return list(UPGRADE_TYPES['market'].keys()) if self.type == 0 else []
-
-    def upgrade(self, upgrade_type):
-        if not self.is_built:
-            return
-        self.type = UPGRADE_TYPES['market'][upgrade_type]
-        if self.type == UPGRADE_TYPES['market']['bank']:
-            self.building_image = config.gfx['buildings']['bank']
-            self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
-            self.is_built = False
-            self.health = 0
-        else:
-            self.building_image = config.gfx['buildings']['mine']
-            self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,)*2)
-            self.is_built = False
-            self.health = 0
-        self.owner.change_income(MARKET_STATS['income'][self.type]/MARKET_STATS['frequency'][self.type] -
-                                 MARKET_STATS['income'][0]/MARKET_STATS['frequency'][0])
+    def get_destroyed(self):
+        super().get_destroyed()
+        self.owner.change_income(-self.income / self.frequency)
 
     def get_attacked(self, damage):
         super().get_attacked(damage)
-        # update owner income on being destroyed
+        # update owner's income on being destroyed
         if self.health < 0:
-            self.owner.change_income(-MARKET_STATS['income'][self.type]/MARKET_STATS['frequency'][self.type])
+            self.owner.change_income(-self.income/self.frequency)
+
+
+class Mine(Market):
+    def __init__(self, tile):
+        super().__init__(tile, 'mine')
+
+
+class Bank(Market):
+    def __init__(self, tile):
+        super().__init__(tile, 'bank')
 
 
 BUILDINGS = {
     'castle': Castle,
     'tower': Tower,
+    'sniper_tower': SniperTower,
+    'magic_tower': MagicTower,
     'barracks': Barracks,
+    'swords_barracks': SwordBarracks,
+    'shields_barracks': ShieldBarracks,
+
     'market': Market,
+    'bank': Bank,
+    'mine': Mine,
 }

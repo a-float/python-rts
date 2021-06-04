@@ -1,32 +1,29 @@
 import math
 import pygame as pg
 from data import config
+from data.components.building_stats import SOLDIER_STATS
 
 
 class Soldier(pg.sprite.Sprite):
-    def __init__(self, health, damage, type):
+    def __init__(self, unit_name):
         pg.sprite.Sprite.__init__(self)
-        self.max_health = health
-        self.health = health
-        self.damage = damage
-        self.path = None
+        stats = SOLDIER_STATS[unit_name]
+        self.name = unit_name
+        self.max_health = stats['health']
+        self.health = self.max_health
+        self.damage = stats['attack']
         self.owner = None
-        self.type = type
+        self.tile = None
+        self.path = None
         self.move_vector = None
+        self.image = None
+
         self.flipped = False
         self.sprites = []
-        self.sprites.append(config.gfx['units']['soldier'])
-        self.sprites.append(config.gfx['units']['soldier_2'])
         self.current_sprite = 0
         self.movement_iter = 0
-        self.image = config.gfx['units']['soldier']
-        self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,)*2)
         self.speed = 1
-        self.tile = None
         self.tile_index = 1
-        self.health_image = config.gfx['utils']['full_hp']
-        self.health_image = pg.transform.scale(self.health_image, (config.UNIT_SIZE,)*2)
-        self.health_rect = None
         self.damage_timer = 0
         self.damage_image = config.gfx['utils']['boom']
         self.damage_image = pg.transform.scale(self.damage_image, (config.TILE_SPRITE_SIZE,) * 2)
@@ -37,21 +34,14 @@ class Soldier(pg.sprite.Sprite):
     def release(self, path):
         self.path = path
         self.tile = self.path.tiles[0]
-        self.tile.soldiers.append(self)
-        if self.type == 1:
-            self.sprites = []
-            self.sprites.append(config.gfx['units']['swordsman'])
-            self.sprites.append(config.gfx['units']['swordsman_2'])
-            self.image = config.gfx['units']['swordsman']
-        elif self.type == 2:
-            self.sprites = []
-            self.sprites.append(config.gfx['units']['shieldman'])
-            self.sprites.append(config.gfx['units']['shieldman_2'])
-            self.image = config.gfx['units']['shieldman']
-        self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,) * 2)
+        self.owner = self.tile.owner
+        self.sprites.append(config.gfx['units'][self.name+'_soldier'])
+        self.sprites.append(config.gfx['units'][self.name+'_soldier_2'])
+        for i in range(len(self.sprites)):
+            self.sprites[i] = pg.transform.scale(self.sprites[i], (config.UNIT_SIZE,) * 2)
+        self.image = self.sprites[0]
         self.rect = self.image.get_rect(center=path.tiles[0].rect.center)
         self.move_vector = self.get_move_vector()
-        self.owner = self.tile.owner
 
     def get_move_vector(self):
         src, to = self.rect.center, self.path.tiles[self.tile_index].rect.center
@@ -82,6 +72,7 @@ class Soldier(pg.sprite.Sprite):
             if self.move_vector[0] > 0:
                 self.flipped = False
             if self.flipped:
+                # TODO image is flipped every frame. Should be checked only when the move vector changes
                 self.image = pg.transform.flip(self.image, True, False)
 
         if self.tile.paths[self.owner.id] is None:  # tha path under the soldier has disappeared
@@ -91,7 +82,6 @@ class Soldier(pg.sprite.Sprite):
             self.rect.move_ip(*self.move_vector)
         else:  # soldier has arrived at the target tile
             self.try_to_attack()
-            self.tile.soldiers.remove(self)
 
             # try to go to the next tile
             if self.tile_index == len(self.path.tiles)-1:  # soldier disappears upon reaching the end of the path
@@ -100,7 +90,6 @@ class Soldier(pg.sprite.Sprite):
                 self.tile_index += 1
                 self.tile = self.path.tiles[self.tile_index]
                 self.move_vector = self.get_move_vector()
-                self.tile.soldiers.append(self)
 
     def get_attacked(self, damage):
         self.health -= damage
@@ -109,9 +98,6 @@ class Soldier(pg.sprite.Sprite):
         if self.health <= 0:
             print("IM DEAD!")
             self.is_dead = True
-            if self in self.tile.soldiers:
-                self.tile.soldiers.remove(self)
-            del self
 
     def attack(self, building):
         building.get_attacked(self.damage)
@@ -126,9 +112,9 @@ class Soldier(pg.sprite.Sprite):
 
     def draw_health(self, surface):
         if self.damage_timer > 0:
-            surface.blit(self.damage_image, self.rect)
+            surface.blit(self.damage_image, self.damage_image.get_rect(center=self.rect.center))
             self.damage_timer -= 1
-        health_ratio = self.health / self.max_health
+        health_ratio = max(0, self.health / self.max_health)
         health_img = pg.Surface((int(health_ratio * config.TILE_SPRITE_SIZE*0.6), int(config.TILE_SPRITE_SIZE * 0.12)))
         if health_ratio >= 0.8:
             col = (0, 255, 0)
@@ -149,3 +135,6 @@ def dist_sq(pos1, pos2):
     x1, y1 = pos1
     x2, y2 = pos2
     return (x1 - x2) ** 2 + (y1 - y2) ** 2
+
+def pos_to_relative(pos):
+    return pos[0] / config.SCREEN_SIZE[0], pos[1] / config.SCREEN_SIZE[1]

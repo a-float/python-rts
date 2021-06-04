@@ -19,6 +19,7 @@ FONT_SMALL = pg.font.SysFont("comicsansms", 22)
 FONT_TINY = pg.font.SysFont("comicsansms", 15)
 
 TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 8.36))
+BULLET_SIZE = int(TILE_SIZE*0.8)
 
 UNIT_SIZE = int(TILE_SIZE / 1.8)
 TILE_SPRITE_SIZE = TILE_SIZE - 10  # this offset needs to be even for the player marker to display symmetrically

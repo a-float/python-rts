@@ -12,7 +12,7 @@ class Player:
 
     def __init__(self, player_no, tile, board):
         self.lost: bool = False
-        self.gold: float = 0
+        self.gold: float = 20
         self.income: int = 5
         self.tile: Tile = tile  # the tile player is currently pointing at
         self.id: int = player_no
@@ -113,7 +113,8 @@ class Player:
             print(self.tile.building)
             print(self.tile.rect.center)
 
-    def die(self):
+    def lose(self):
+        print(f'Players {self.id} lost')
         self.lost = True
 
     def init_upgrade(self):

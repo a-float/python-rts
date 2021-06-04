@@ -16,6 +16,7 @@ class Tile(pg.sprite.Sprite):
         self.neighbours = {}  # a dict passed by the map
         self.owner = None
         self.building = None
+        # TODO fix paths to remove the paths dict
         self.paths = {
             1: None,
             2: None,
@@ -28,7 +29,6 @@ class Tile(pg.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.building_path = False
         self.board = board
-        self.soldiers = []
 
     def set_neighbours(self, neighbours):
         self.neighbours = neighbours

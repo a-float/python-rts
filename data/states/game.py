@@ -86,3 +86,23 @@ class Game(state_machine.State):
         for p in self.players.values():
             if not p.is_online:
                 p.draw_menus(surface)
+
+    def get_game_state(self):
+        players_data = [{'gold': p.gold, 'income': p.income, 'pos': p.tile.index} for p in self.players.values()]
+
+        def get_building_data(tile):
+
+            if not tile.building:
+                return None
+            return {
+                'name': tile.building.name,
+                'is_built': tile.building.is_built
+            }
+
+        def get_tile_data(tile, tile_index):
+            return {'index': tile_index,
+                    'owner': tile.owner.id if tile.owner else None,
+                    'building': get_building_data(tile)
+                    }
+
+        board_data = [get_tile_data(tile, i) for i, tile in enumerate(self.board.tiles.values())]

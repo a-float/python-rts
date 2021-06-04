@@ -1,14 +1,14 @@
 from typing import Optional, Tuple, Dict
 
 import pygame as pg
-from data import colors, config
+from data import config
 from data.components.tile import Tile
 from data.components.player import Player
 from data.dataclasses import MapConfig
 
 
 class Board:
-    """Manages the tiles"""
+    """ Contains and manages the tiles"""
 
     def __init__(self):
         self.tile_group = pg.sprite.Group()
@@ -47,7 +47,7 @@ class Board:
                 raise ValueError(f'Invalid board string. Faulty row: {y}. "{row}"')
             for x, char in enumerate(row):
                 if char != '.':
-                    new_tile = Tile((offset_x+x * tile_size, offset_y+y*tile_size), self, tile_size-4)
+                    new_tile = Tile((offset_x+x * tile_size, offset_y+y*tile_size), self, tile_size-4)  # TODO this magic -4
                     # TODO check if each of the numbers appears once
                     if char in list([str(config.PLAYER_1 + i) for i in range(self.settings.player_no)]):
                         new_tile.owner = self.create_player(players, int(char), new_tile)
@@ -67,7 +67,7 @@ class Board:
         return self.tiles.get(tile_pos, None)
 
     def create_player(self, players, player_no, start_tile):
-        """ Creates and returns the newly created player """
+        """ Creates a new player, puts it in the players list and returns the newly created element """
         if player_no in players.keys():
             # TODO should it be a RuntimeError?
             raise RuntimeError(f"Can't create player no {player_no} as it already exists.")
@@ -78,6 +78,10 @@ class Board:
         new_building = tile.build(building_name)
         if new_building is not None:
             self.building_group.add(new_building)
+
+    def replace_tile_building(self, tile, new_building):
+        tile.building = new_building
+        self.building_group.add(new_building)
 
     def add_unit(self, unit):
         self.unit_group.add(unit)
