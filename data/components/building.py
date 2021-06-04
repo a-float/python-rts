@@ -1,4 +1,5 @@
-from data.components.soldier import Soldier, pos_to_relative
+from data.components.soldier import Soldier
+from data.tools import pos_to_relative, get_health_surface
 from data.components.bullet import *
 from data.components.building_stats import *
 from data import config
@@ -8,17 +9,14 @@ class Building(pg.sprite.Sprite):
     def __init__(self, tile, building_name):
         super().__init__()
         self.name = building_name
-        self.max_health = 0
-        self.health = 0
+        self.max_health = BUILDING_DATA[self.name]['health']
+        self.health = 0  # health starts as 0 and increases to a hundred while building
         self.cost = 0
-        self.can_be_attacked = True
         self.is_built = False
         self.owner = tile.owner
-        # self.building_timer = 10
-        self.last_action_time = 0
-        self.delay = 1
+        self.last_passive_time = 0  # when was the last time the passive was executed
+        self.delay = 1  # time between adjacent passive() calls in seconds
         self.tile = tile
-        self.max_health = BUILDING_DATA[self.name]['health']
 
         self.image = config.gfx['buildings'][building_name]
         self.image = pg.transform.scale(self.image, (config.TILE_SPRITE_SIZE,) * 2)
@@ -37,6 +35,7 @@ class Building(pg.sprite.Sprite):
         self.images = {}  # TODO this is not used anywhere?
 
     def update(self, now):
+        """ Called every frame. Handles the building animation"""
         if not self.is_built:
             if self.health < self.max_health:
                 self.image = self.building_sprites[self.current_building_sprite]
@@ -51,48 +50,48 @@ class Building(pg.sprite.Sprite):
                 self.health = self.max_health
                 self.image = self.building_image
                 self.is_built = True
-
-        elif self.last_action_time <= now - self.delay * 1000:
-            self.last_action_time = now
+        # passive is not executed while the building is being built
+        elif self.last_passive_time <= now - self.delay * 1000:
+            self.last_passive_time = now
             self.passive()
 
     def get_upgrade_types(self):
+        """ Returns the list of names of the buildings the current one can be upgraded to """
         if not self.is_built:
             return []
         return UPGRADE_TYPES.get(self.name, [])
 
     def passive(self):
-        # It is called every self.delay seconds
+        # Called every self.delay seconds
         pass
 
     def active(self):
-        # It is called whenever action button is pressed on this field
+        # Called whenever the action button is pressed on this field
         pass
 
     def upgrade(self, upgrade_name):
-        """ Changes building to one of its upgrades. Returns true if the upgrade_name was valid """
-        if not self.is_built:
-            return False
-        if upgrade_name in self.get_upgrade_types():
-            self.get_destroyed()
-            new_building = BUILDINGS[upgrade_name](self.tile)
-            new_building.health = self.health
-            new_building.tile = self.tile
-            new_building.is_built = False
-            self.pass_to_upgraded_building(new_building)
-            self.tile.board.replace_tile_building(self.tile, new_building)
-            return True
+        """
+        Replaces the tile's building to the new building of the specified name.
+        """
+        self.get_destroyed()
+        new_building = BUILDINGS[upgrade_name](self.tile)
+        new_building.health = 0
+        new_building.tile = self.tile
+        new_building.is_built = False
+        self.pass_to_upgraded_building(new_building)
+        self.tile.board.replace_tile_building(self.tile, new_building)
 
     def pass_to_upgraded_building(self, new_building):
+        """ Called on the upgraded version of the building before it is placed on the tile """
         pass
 
     def get_destroyed(self):
+        """ Called when the building is destroyed"""
         self.tile.building = None
         self.kill()
 
     def get_attacked(self, damage):
-        if not self.is_built:
-            return
+        """ Called when a soldier attacks the building"""
         self.health -= damage
         self.damage_timer = 10
         if self.health <= 0:
@@ -103,9 +102,7 @@ class Building(pg.sprite.Sprite):
             surface.blit(self.damage_image, self.damage_rect)
             self.damage_timer -= 1
         health_ratio = self.health / self.max_health
-        health_img = pg.Surface((int(health_ratio*config.TILE_SPRITE_SIZE), int(config.TILE_SPRITE_SIZE*0.12)))
-        col = [250 * (1 - health_ratio), health_ratio * 250, 0]
-        health_img.fill(col)
+        health_img = get_health_surface(health_ratio, config.TILE_SPRITE_SIZE, config.TILE_SPRITE_SIZE*0.12)
         health_rect = health_img.get_rect(centerx=self.tile.rect.centerx, top=self.tile.rect.top+5)
         surface.blit(health_img, health_rect)
 
@@ -113,13 +110,15 @@ class Building(pg.sprite.Sprite):
 class Castle(Building):
     def __init__(self, tile):
         super().__init__(tile, 'castle')
-        self.is_built = True
+        self.income = BUILDING_DATA[self.name]['income']
+        self.owner.change_income(self.income)
 
     def passive(self):
-        self.owner.add_gold(BUILDING_DATA['castle']['income'])
+        self.owner.add_gold(self.income)
 
     def get_destroyed(self):
         self.owner.lose()
+        # no need to decrease the income as player is out
 
 
 class Tower(Building):
@@ -210,19 +209,23 @@ class ShieldBarracks(Barracks):
 class Market(Building):
     def __init__(self, tile, building_name='market'):
         super().__init__(tile, building_name)
-        self.income = BUILDING_DATA[self.name].get('income', 0)
-        self.frequency = BUILDING_DATA[self.name].get('frequency', 1)
+        self.income = BUILDING_DATA[self.name]['income']
+        self.frequency = BUILDING_DATA[self.name]['frequency']
         self.owner.change_income(self.income / self.frequency)
+        self.delay = self.delay * self.frequency
+
+    def passive(self):
+        self.owner.add_gold(self.income)
 
     def get_destroyed(self):
         super().get_destroyed()
-        self.owner.change_income(-self.income / self.frequency)
+        self.owner.change_income(-self.income * self.frequency)
 
     def get_attacked(self, damage):
         super().get_attacked(damage)
         # update owner's income on being destroyed
         if self.health < 0:
-            self.owner.change_income(-self.income/self.frequency)
+            self.owner.change_income(-self.income * self.frequency)
 
 
 class Mine(Market):

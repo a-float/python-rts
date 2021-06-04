@@ -1,7 +1,7 @@
 import pygame as pg
 import math
 from data import config
-from data.components.soldier import dist_sq
+from data.tools import dist_sq
 
 
 class Bullet(pg.sprite.Sprite):

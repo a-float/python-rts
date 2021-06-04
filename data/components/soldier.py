@@ -1,6 +1,7 @@
 import math
 import pygame as pg
 from data import config
+from data.tools import dist_sq, get_health_surface
 from data.components.building_stats import SOLDIER_STATS
 
 
@@ -115,26 +116,6 @@ class Soldier(pg.sprite.Sprite):
             surface.blit(self.damage_image, self.damage_image.get_rect(center=self.rect.center))
             self.damage_timer -= 1
         health_ratio = max(0, self.health / self.max_health)
-        health_img = pg.Surface((int(health_ratio * config.TILE_SPRITE_SIZE*0.6), int(config.TILE_SPRITE_SIZE * 0.12)))
-        if health_ratio >= 0.8:
-            col = (0, 255, 0)
-        elif health_ratio >= 0.6:
-            col = (50, 200, 0)
-        elif health_ratio >= 0.4:
-            col = (100, 150, 0)
-        elif health_ratio >= 0.2:
-            col = (200, 50, 0)
-        else:
-            col = (255, 0, 0)
-        health_img.fill(col)
+        health_img = get_health_surface(health_ratio, config.TILE_SPRITE_SIZE*0.6, config.TILE_SPRITE_SIZE * 0.10)
         health_rect = health_img.get_rect(centerx=self.rect.centerx, top=self.rect.top - 4)
         surface.blit(health_img, health_rect)
-
-
-def dist_sq(pos1, pos2):
-    x1, y1 = pos1
-    x2, y2 = pos2
-    return (x1 - x2) ** 2 + (y1 - y2) ** 2
-
-def pos_to_relative(pos):
-    return pos[0] / config.SCREEN_SIZE[0], pos[1] / config.SCREEN_SIZE[1]

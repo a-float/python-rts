@@ -6,7 +6,7 @@ Also contained here are resource loading functions.
 import os
 import pygame as pg
 import threading
-from data import state_machine
+from data import state_machine, config
 
 TIME_PER_UPDATE = 16.0  # Milliseconds
 
@@ -115,3 +115,21 @@ def set_interval(func, sec):
     t = threading.Timer(sec, func_wrapper)
     t.start()
     return t
+
+
+def dist_sq(pos1, pos2):
+    x1, y1 = pos1
+    x2, y2 = pos2
+    return (x1 - x2) ** 2 + (y1 - y2) ** 2
+
+
+def pos_to_relative(pos):
+    return pos[0] / config.SCREEN_SIZE[0], pos[1] / config.SCREEN_SIZE[1]
+
+
+def get_health_surface(health_ratio, width, height):
+    health_ratio = max(0, health_ratio)
+    health_img = pg.Surface((int(health_ratio*width), int(height)))
+    col = [250 * (1 - health_ratio), health_ratio * 250, 0]
+    health_img.fill(col)
+    return health_img

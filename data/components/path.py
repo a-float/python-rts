@@ -1,16 +1,9 @@
 from data.components.building import Barracks
 import pygame as pg
-from data import config, colors
+from data import config
 
 
-class Path(pg.sprite.Sprite):  # todo its not being a sprite rn, just drawing a line
-    # todo if second path of same player is built, first disappears
-    """
-    Creates a double linked list. The first one has None source and the last one None target
-    Each points to the tile it lies on.
-    Used to display the paths and guide the soldiers
-    """
-
+class Path(pg.sprite.Sprite):
     def __init__(self, start_tile, player):
         super().__init__(start_tile.board.path_group)
         self.tiles = []
@@ -52,14 +45,22 @@ class PathBuilder:
         self.is_active = False
         self.path = None
 
-    def can_build_here(self, tile):
+    def can_build_path_on_tile(self, tile):
         if tile is None:
             return False
-        if tile.owner == self.owner.id and tile.building is not None and not isinstance(tile.building, Barracks):
-            return False
-        if tile.paths[self.owner.id] is not None:  # paths cant cross (for now), it doesnt allow path cycles
-            return False
-        return True
+        if config.CAN_PATHS_CROSS:
+            return True
+        else:  # paths can't cross
+            if tile.paths[self.owner.id] is None:
+                return True
+        return False
+
+
+        # if tile.owner == self.owner and tile.building is not None and isinstance(tile.building, Barracks):
+        #     return True
+        # if config.CAN_PATHS_CROSS or tile.paths[self.owner.id] is not None:
+        #     return False
+        # return True
 
     def init_path(self):
         tile = self.owner.tile
@@ -90,7 +91,7 @@ class PathBuilder:
                     config.OPPOSITE_DIRECTIONS[command] == self.prev_directions[-1]:  # trying to move backwards
                 self.undo_path()
                 self.owner.move(command)
-            elif self.can_build_here(target_tile):
+            elif self.can_build_path_on_tile(target_tile):
                 self.path.add_tile(target_tile)
                 self.prev_directions.append(command)
                 self.owner.move(command)

@@ -1,4 +1,3 @@
-import pygame as pg
 import data.config as config
 from data import colors
 from data.components import building
@@ -10,14 +9,12 @@ class Tile(pg.sprite.Sprite):
     Class representing a single in game tile.
     It knows about it's neighbours, and the building it holds
     """
-
     def __init__(self, pos, board, sprite_size):
         pg.sprite.Sprite.__init__(self)
         self.neighbours = {}  # a dict passed by the map
-        self.owner = None
+        self.owner = None  # Player object
         self.building = None
-        # TODO fix paths to remove the paths dict
-        self.paths = {
+        self.paths = {  # paths of each player that lie on this tile. Used when CAN_PATHS_CROSS == False
             1: None,
             2: None,
             3: None,
@@ -25,7 +22,7 @@ class Tile(pg.sprite.Sprite):
         }
         self.image = pg.Surface((sprite_size, sprite_size))
         self.image.fill(colors.LIGHT_GRAY)
-        self.ownership = {}
+        self.ownership = {}  # Dict[Player: int]
         self.rect = self.image.get_rect(topleft=pos)
         self.building_path = False
         self.board = board
@@ -66,13 +63,11 @@ class Tile(pg.sprite.Sprite):
 
     def decrease_ownership(self, player):
         self.ownership[player] -= 1
-        # if self.ownership[player] == 0:
-        #     del self.ownership[player]
 
     def update_owner(self):
         if self.building is None:
             ranking = sorted(list(self.ownership.items()), key=lambda x: -x[1])
-            # if no one has ownership the tile belongs to noone
+            # if no one has ownership the tile belongs to no one
             if ranking[0][1] == 0:
                 self.owner = None
             else:
