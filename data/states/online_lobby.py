@@ -107,7 +107,7 @@ class OnlineLobby(BasicMenu):
         self.image.fill(config.COLORKEY)
         preview_size = (int(config.WIDTH * 0.4), int(config.HEIGHT * 0.4))
         # start with 0 bots and one player - host
-        self.board_preview: BoardPreview = BoardPreview(0, 1, size=preview_size)
+        self.board_preview: BoardPreview = BoardPreview(players_no=1, size=preview_size)
         self.rendered: Dict[str, (pg.Surface, pg.Rect)] = {}
         self.board_preview.change_map(0) # TODO get actual online map
         self.server: Optional[Server] = None

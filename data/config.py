@@ -15,7 +15,7 @@ COLORKEY = (255, 0, 255)  # treated as alpha - bright purple
 FONT_BIG = pg.font.SysFont("comicsansms", 100)  # chose a different font, maybe a monospace one
 FONT_MED = pg.font.SysFont("comicsansms", 50)
 FONT_SMED = pg.font.SysFont("comicsansms", 35)
-FONT_SMALL = pg.font.SysFont("comicsansms", 22)
+FONT_SMALL = pg.font.SysFont("comicsansms", 25)
 FONT_TINY = pg.font.SysFont("comicsansms", 15)
 
 TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 8.36))

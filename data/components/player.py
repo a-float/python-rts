@@ -66,7 +66,6 @@ class Player:
             self.parse_build_command(command)
         else:
             if command == 'action':
-                # print("Player has performed an action")
                 if self.tile.owner == self and self.tile.building is None:
                     self.in_build_mode = True
                     self.set_menu_image('build_menu')
@@ -126,8 +125,6 @@ class Player:
         if self.tile.neighbours[direction] is not None:
             self.tile = self.tile.neighbours[direction]
             self.marker.set_position(self.tile.rect.center)
-            print(self.tile.building)
-            print(self.tile.rect.center)
 
     def lose(self):
         print(f'Players {self.id} lost')

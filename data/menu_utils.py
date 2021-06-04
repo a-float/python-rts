@@ -140,14 +140,13 @@ def make_options(font, choices, start, space, vertical=True, perp_center=None):
 
 
 class BoardPreview:
-    def __init__(self, bots_no, players_no, size=(300, 200)):
+    def __init__(self, players_no, size=(300, 200)):
         self.board = Board()
         self.preview_size = size
         self.maps = list(config.MAPS.items())
         self.map_index = 0
         self.current_map = self.maps[0]
         self.players_no = players_no
-        self.bots_no = bots_no
         self.rendered = {}
 
     def draw(self, surface):
@@ -192,11 +191,12 @@ class BoardPreview:
 
     def set_player_counts(self, new_counts: typing.Dict[str, int]):
         self.players_no = new_counts['players']
-        self.bots_no = new_counts['bots']
 
     def get_map_config(self):
-        return MapConfig(player_no=self.players_no, bots_no=self.bots_no,
-                         name=self.current_map[0], layout=self.current_map[1])
+        return MapConfig(player_no=self.players_no,
+                         name=self.current_map[0],
+                         layout=self.current_map[1]
+                         )
 
 
 class TextField(pg.sprite.Sprite):
@@ -240,4 +240,3 @@ class TextField(pg.sprite.Sprite):
 
     def on_pressed_exit(self):
         self.active = False
-

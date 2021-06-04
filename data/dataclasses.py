@@ -9,7 +9,6 @@ from data.networking.server import Server
 class MapConfig:
     """ Stores data needed for the initialization of the map. Part of the GameData class"""
     player_no: int
-    bots_no: int
     name: str
     layout: str
 
