@@ -11,6 +11,7 @@ from data.networking.server import Server, ClientData
 from data.networking.client import Client
 from data.components import building_stats
 
+
 class OnlineModeSelect(BasicMenu):
     def __init__(self):
         super().__init__(3)
@@ -111,10 +112,9 @@ class OnlineLobby(BasicMenu):
         self.rendered: Dict[str, (pg.Surface, pg.Rect)] = {}
         self.board_preview.change_map(0) # TODO get actual online map
         self.server: Optional[Server] = None
-        self.handle = None
         self.client: Optional[Client] = None
         self.is_host: bool = False
-        self.preserve_network = False
+        self.preserve_network = False  # should the server and client be preserved when changing the state
         self.render()
 
     def startup(self, now, persistent):
@@ -130,7 +130,7 @@ class OnlineLobby(BasicMenu):
         if persistent['is_host']:
             self.is_host = True
             self.server = Server(self)
-            self.handle = self.server.run()
+            self.server.run()
             self.client = Client(self, names.get_first_name())
         else:
             self.client = Client(self, names.get_first_name(), persistent['ip'])
@@ -141,7 +141,7 @@ class OnlineLobby(BasicMenu):
 
     def cleanup(self):
         if not self.preserve_network:
-            print('im cleaning up the network')
+            print('cleaning up the network')
             if self.client and self.client.running:
                 print('closing the client')
                 self.client.close()
@@ -155,7 +155,7 @@ class OnlineLobby(BasicMenu):
         # print('clients are: ', clients)
         strings = [f'{c.id}. {c.name} - {c.address[0]}' for c in clients if c]
         cols = [config.PLAYER_COLORS[c.id] for c in clients if c]
-        args = [config.FONT_TINY, strings, cols, center_y * 0.38, 35, True, center_x * 1.48]
+        args = [config.FONT_SMALL, strings, cols, center_y * 0.38, 35, True, center_x * 1.48]
         self.rendered['players'] = menu_utils.make_text_list(*args)
 
         self.board_preview.set_player_counts({'players': len(strings), 'bots': 0})
@@ -185,8 +185,8 @@ class OnlineLobby(BasicMenu):
             self.dirty = True
         elif 'players' in message:
             self.render_players(message['players'])
-        elif 'stats' in message:  # {'stats': building stats dict)}
-            building_stats.read_stats_dict(message['stats'])
+        # elif 'stats' in message:  # {'stats': building stats dict)}
+        #     building_stats.read_stats_dict(message['stats'])
         elif 'init' in message:  # {'init': map (MapConfig)}
             self.start_game(message['init'])
 
@@ -234,7 +234,7 @@ class OnlineLobby(BasicMenu):
                     'game_data': GameData(server=self.server, client=self.client,
                                           map=map_config)
                 })
-                self.server.send_to_all(pickle.dumps({'stats': building_stats.get_stats_dict()}))
+                # self.server.send_to_all(pickle.dumps({'stats': building_stats.get_stats_dict()}))
                 self.server.send_to_all(pickle.dumps({'init': map_config}))
                 self.preserve_network = True
                 self.quit = True  # leave the menu state manager and start the game

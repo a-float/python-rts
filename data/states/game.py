@@ -1,12 +1,9 @@
-"""
-This module contains the primary gameplay state.
-"""
 import pickle
 import sys
 import math
 from dataclasses import dataclass
 from typing import Any, Optional, Dict
-
+from data.networking.packable import Packable
 import pygame as pg
 from data import state_machine, config, colors
 from data.components import board, UI
@@ -16,12 +13,25 @@ from data.networking.client import Client
 from data.networking.server import Server
 
 
-class Game(state_machine.State):
+# TODO add receiver class? to online lobby as well
+class Game(state_machine.State, Packable):
     """Core state for the actual gameplay."""
+
+    def pack(self):
+        return {
+            'board': self.board.pack(),
+            'players': [player.pack() for player in self.players.values()]
+        }
+
+    def unpack(self, data):
+        print('Game unpacking data: ', data)
+        self.board.unpack(data['board'])
+        for player_data in data['players']:
+            self.players[player_data['id']].unpack(player_data)
 
     def __init__(self):
         state_machine.State.__init__(self)
-        self.board = board.Board()
+        self.board = board.Board(self)
         self.players: Dict[int, Player] = {}
         self.UI = None
         self.is_over: bool = False
@@ -35,9 +45,12 @@ class Game(state_machine.State):
             raise IndexError('GAME startup: game_data key not present in the persistent dictionary.')
         settings = persistent['game_data']
         self.client, self.server = settings.client, settings.server
+        if self.server:
+            self.server.set_true_game(self)
         if self.client:
             self.client.receiver = self
             for p in self.players.values():
+                print('MY ID is ', p.id)
                 if p.id != self.client.player_id:
                     p.is_online = True
 
@@ -72,6 +85,8 @@ class Game(state_machine.State):
         print('Game received message: ', message)
         if message[0] == 'action':  # someone has pressed a key ('kdown', player id, command to execute)
             self.players[message[1]].execute_command(message[2])
+        elif message[0] == 'state':
+            self.unpack(message[1])
 
     def update(self, keys, now):
         """Update phase for the primary game state."""
@@ -112,23 +127,3 @@ class Game(state_machine.State):
         if self.is_over:
             print('Game is over')
             self.UI.show_winner(surface, self.get_winner())
-
-    def get_game_state(self):
-        players_data = [{'gold': p.gold, 'income': p.income, 'pos': p.tile.index} for p in self.players.values()]
-
-        def get_building_data(tile):
-
-            if not tile.building:
-                return None
-            return {
-                'name': tile.building.name,
-                'is_built': tile.building.is_built
-            }
-
-        def get_tile_data(tile, tile_index):
-            return {'index': tile_index,
-                    'owner': tile.owner.id if tile.owner else None,
-                    'building': get_building_data(tile)
-                    }
-
-        board_data = [get_tile_data(tile, i) for i, tile in enumerate(self.board.tiles.values())]

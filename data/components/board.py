@@ -2,22 +2,36 @@ from typing import Optional, Tuple, Dict
 
 import pygame as pg
 from data import config
+from collections import OrderedDict
 from data.components.tile import Tile
+from data.networking.packable import Packable
 from data.components.player import Player
 from data.dataclasses import MapConfig
 
 
-class Board:
+class Board(Packable):
     """ Contains and manages the tiles"""
 
-    def __init__(self):
+    def pack(self):
+        return {
+            'tiles': [tile.pack() for tile in self.tiles.values()]
+        }
+
+    def unpack(self, data):
+        print('Board unpacking data: ', data)
+        for i, tile in enumerate(self.tiles.values()):
+            # print(i, tile, data['tiles'][i])
+            tile.unpack(data['tiles'][i])
+
+    def __init__(self, game=None):
         self.tile_group = pg.sprite.Group()
         self.building_group = pg.sprite.Group()
         self.unit_group = pg.sprite.Group()
         self.path_group = pg.sprite.Group()
         self.bullet_group = pg.sprite.Group()
-        self.tiles: Dict[Tuple[int, int], Tile] = {}
+        self.tiles: Dict[Tuple[int, int], Tile] = OrderedDict()
         self.board_size = None
+        self.game = game
         self.settings: Optional[MapConfig] = None
 
     def _find_neighbours(self, tile_pos):
@@ -47,7 +61,7 @@ class Board:
                 raise ValueError(f'Invalid board string. Faulty row: {y}. "{row}"')
             for x, char in enumerate(row):
                 if char != '.':
-                    new_tile = Tile((offset_x+x * tile_size, offset_y+y*tile_size), self, tile_size-4)  # TODO this magic -4
+                    new_tile = Tile((offset_x+x * tile_size, offset_y+y*tile_size), len(self.tiles), self, tile_size-4)  # TODO this magic -4
                     # TODO check if each of the numbers appears once
                     if char in list([str(config.PLAYER_1 + i) for i in range(self.settings.player_no)]):
                         new_tile.owner = self.create_player(players, int(char), new_tile)
@@ -63,8 +77,8 @@ class Board:
 
         return players
 
-    def get_tile(self, tile_pos):
-        return self.tiles.get(tile_pos, None)
+    def get_tile_by_index(self, tile_index):
+        return list(self.tiles.values())[tile_index]
 
     def create_player(self, players, player_no, start_tile):
         """ Creates a new player, puts it in the players list and returns the newly created element """

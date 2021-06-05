@@ -29,25 +29,25 @@ SOLDIER_STATS = {
 }
 
 
-def get_stats_dict():
-    return {
-        'BUILDING_DATA': BUILDING_DATA,
-        'BUIlDING_SPEED': BUILDING_SPEED,
-        'UPGRADE_COST': UPGRADE_COST,
-        'UPGRADE_TYPES': UPGRADE_TYPES,
-        'TOWER_RELOAD_TIME': TOWER_RELOAD_TIME,
-        'TOWER_DAMAGE': TOWER_DAMAGE,
-        'SOLDIER_STATS': SOLDIER_STATS
-    }
-
-
-def read_stats_dict(stats):
-    print('reading the stats')
-    global BUILDING_DATA, BUILDING_SPEED, UPGRADE_TYPES, UPGRADE_COST, TOWER_RELOAD_TIME, TOWER_DAMAGE, SOLDIER_STATS
-    BUILDING_DATA = stats['BUILDING_DATA']
-    BUILDING_SPEED = stats['BUIlDING_SPEED']
-    UPGRADE_COST = stats['UPGRADE_COST']
-    UPGRADE_TYPES = stats['UPGRADE_TYPES']
-    TOWER_RELOAD_TIME = stats['TOWER_RELOAD_TIME']
-    TOWER_DAMAGE = stats['TOWER_DAMAGE']
-    SOLDIER_STATS = stats['SOLDIER_STATS']
+# def get_stats_dict():
+#     return {
+#         'BUILDING_DATA': BUILDING_DATA,
+#         'BUIlDING_SPEED': BUILDING_SPEED,
+#         'UPGRADE_COST': UPGRADE_COST,
+#         'UPGRADE_TYPES': UPGRADE_TYPES,
+#         'TOWER_RELOAD_TIME': TOWER_RELOAD_TIME,
+#         'TOWER_DAMAGE': TOWER_DAMAGE,
+#         'SOLDIER_STATS': SOLDIER_STATS
+#     }
+#
+#
+# def read_stats_dict(stats):
+#     print('reading the stats')
+#     global BUILDING_DATA, BUILDING_SPEED, UPGRADE_TYPES, UPGRADE_COST, TOWER_RELOAD_TIME, TOWER_DAMAGE, SOLDIER_STATS
+#     BUILDING_DATA = stats['BUILDING_DATA']
+#     BUILDING_SPEED = stats['BUIlDING_SPEED']
+#     UPGRADE_COST = stats['UPGRADE_COST']
+#     UPGRADE_TYPES = stats['UPGRADE_TYPES']
+#     TOWER_RELOAD_TIME = stats['TOWER_RELOAD_TIME']
+#     TOWER_DAMAGE = stats['TOWER_DAMAGE']
+#     SOLDIER_STATS = stats['SOLDIER_STATS']

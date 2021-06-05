@@ -1,11 +1,23 @@
 from data.components.soldier import Soldier
 from data.tools import pos_to_relative, get_health_surface
 from data.components.bullet import *
+from data.networking.packable import Packable
 from data.components.building_stats import *
 from data import config
 
 
-class Building(pg.sprite.Sprite):
+class Building(pg.sprite.Sprite, Packable):
+    def pack(self):
+        return {
+            'name': self.name,
+            'health': self.health,
+            'is_built': self.is_built,
+        }
+
+    def unpack(self, data):
+        self.health = data['health']
+        self.is_built = data['is_built']
+
     def __init__(self, tile, building_name):
         super().__init__()
         self.name = building_name
@@ -73,7 +85,7 @@ class Building(pg.sprite.Sprite):
         """
         Replaces the tile's building to the new building of the specified name.
         """
-        self.get_destroyed()
+        self.destroy()
         new_building = BUILDINGS[upgrade_name](self.tile)
         new_building.health = 0
         new_building.tile = self.tile
@@ -85,7 +97,7 @@ class Building(pg.sprite.Sprite):
         """ Called on the upgraded version of the building before it is placed on the tile """
         pass
 
-    def get_destroyed(self):
+    def destroy(self):
         """ Called when the building is destroyed"""
         self.tile.building = None
         self.kill()
@@ -95,7 +107,7 @@ class Building(pg.sprite.Sprite):
         self.health -= damage
         self.damage_timer = 10
         if self.health <= 0:
-            self.get_destroyed()
+            self.destroy()
 
     def draw_health(self, surface):
         if self.damage_timer > 0:
@@ -116,9 +128,9 @@ class Castle(Building):
     def passive(self):
         self.owner.add_gold(self.income)
 
-    def get_destroyed(self):
+    def destroy(self):
         self.owner.lose()
-        super().get_destroyed()
+        super().destroy()
         # no need to decrease the income as player is out
 
 
@@ -183,10 +195,10 @@ class Barracks(Building):
         self.health -= damage
         print("Get attacked DMG: ", damage)
         if self.health <= 0:
-            self.get_destroyed()
+            self.destroy()
 
-    def get_destroyed(self):
-        super().get_destroyed()
+    def destroy(self):
+        super().destroy()
         if self.health <= 0:  # don't destroy the path if the barracks are getting upgraded
             path = self.tile.paths[self.owner.id]
             if path:
@@ -218,8 +230,8 @@ class Market(Building):
     def passive(self):
         self.owner.add_gold(self.income)
 
-    def get_destroyed(self):
-        super().get_destroyed()
+    def destroy(self):
+        super().destroy()
         self.owner.change_income(-self.income * self.frequency)
 
     def get_attacked(self, damage):

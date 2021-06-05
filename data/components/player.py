@@ -8,7 +8,7 @@ from data.components.building_stats import BUILDING_DATA
 from data.components.building import Barracks, Tower, Market
 
 
-class Player:
+class Player(Packable):
     """Class that allows the player to interact with the Board"""
 
     def __init__(self, player_no, tile, board):
@@ -124,7 +124,6 @@ class Player:
     def move(self, direction):
         if self.tile.neighbours[direction] is not None:
             self.tile = self.tile.neighbours[direction]
-            self.marker.set_position(self.tile.rect.center)
 
     def lose(self):
         print(f'Players {self.id} lost')
@@ -164,7 +163,25 @@ class Player:
             self.tile.building.upgrade(upgrade_name)
             self.in_upgrade_mode = False
 
+    def pack(self):
+        return {
+            'id': self.id,
+            'gold': self.gold,
+            'income': self.income,
+            'tile_index': self.tile.index,
+            # 'in_build_mode': self.in_build_mode,
+            # 'in_upgrade_mode': self.in_upgrade_mode
+        }
+
+    def unpack(self, data):
+        self.gold = data['gold']
+        self.income = data['income']
+        self.tile = self.board.get_tile_by_index(data['tile_index'])
+        # self.in_build_mode = data['in_build_mode']
+        # self.in_upgrade_mode = data['in_upgrade_mode']
+
     def draw_marker(self, surface):
+        self.marker.set_position(self.tile.rect.center)
         surface.blit(self.marker.image, self.marker.rect)
 
     def draw_menu(self, surface):

@@ -40,11 +40,15 @@ class Server:
         self.read_list = [self.server_socket]
         self.running = True
         self.current_map_index = 0
+        self.true_game = None
+
+    def set_true_game(self, game):
+        self.true_game = game
 
     def get_client_count(self):
         return len(self.socket_id_dict)
 
-    def _get_id(self):
+    def _get_available_id(self):
         for i, v in enumerate(self.clients):
             if not v:
                 return i
@@ -68,7 +72,7 @@ class Server:
         self.send_to_all(pickle.dumps({'players': self.clients}))
 
     def add_client(self, sckt, addr):
-        new_id = self._get_id()
+        new_id = self._get_available_id()
         self.clients[new_id] = ClientData(id=new_id+1, address=addr)
         self.socket_id_dict.update({sckt: new_id})
         # print(self.socket_id_dict)
@@ -105,8 +109,12 @@ class Server:
                             s.close()
                             self.read_list.remove(s)
                         elif comms[0] == 'action':  # command "kdown:command_name" - player has made a valid action
+                            print('SERVER GOT action message')
                             payload = ('action', self.socket_id_dict[s]+1, comms[1])
-                            self.send_to_all(pickle.dumps(payload))
+                            self.true_game.handle_message(payload)
+                            # TODO server owner should not send state to himself?
+                            self.send_to_all(pickle.dumps(('state', self.true_game.pack())))
+
                     else:
                         s.close()
                         self.read_list.remove(s)
