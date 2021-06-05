@@ -3,7 +3,7 @@ from typing import Dict, List, Any
 from data.components.tile import Tile
 from data import config
 from data.components.path import PathBuilder
-from data.components import building
+from data.networking.packable import Packable
 from data.components.building_stats import BUILDING_DATA
 from data.components.building import Barracks, Tower, Market
 
@@ -194,7 +194,7 @@ class PlayerMarker(pg.sprite.Sprite):
     # maybe it could be stored inside of the Player
     def __init__(self, color, tile_center):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.Surface((config.TILE_SIZE+2, config.TILE_SIZE+2))
+        self.image = pg.Surface((config.TILE_SIZE + 2, config.TILE_SIZE + 2))
         self.image.fill(color)
         self.image.set_alpha(150)  # applies soma alpha
         self.rect = self.image.get_rect(center=tile_center)
