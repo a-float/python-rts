@@ -2,17 +2,17 @@ import pygame as pg
 import data.config as config
 from data.components.player import Player
 from data.components.building_stats import BUILDING_DATA as data
-from typing import Dict
+from typing import Dict, Any
 
 
 class UI(pg.sprite.Sprite):
     def __init__(self, players: Dict[int, Player]):
         super().__init__()
         self.rect = config.SCREEN_RECT
-        self.players = players
-        self.player_gold = {k: self.players[k].gold for k in self.players}
-        self.player_incomes = {k: self.players[k].income for k in self.players}
-        self.info = {k: None for k in self.players}
+        self.players: Dict[int: Player] = players
+        self.player_gold: Dict[int: int] = {k: self.players[k].gold for k in self.players}
+        self.player_incomes: Dict[int: int] = {k: self.players[k].income for k in self.players}
+        self.info: Dict[int: Any[pg.Surface, pg.Rect]] = {k: None for k in self.players}
         self.info_positions = {
             1: 'topleft',
             2: 'topright',
@@ -46,8 +46,27 @@ class UI(pg.sprite.Sprite):
             'rect': info.get_rect(**kwargs)
         }
 
+    def show_winner(self, surface, winner: Player):
+        help_message = 'Press ESC to quit'
+        subtext = config.FONT_TINY.render(help_message, 1, pg.Color('black'))
+
+        winner_text = (f'Player {winner.id}' if winner else 'No one') + ' has won!'
+        text_color = winner.color if winner else pg.Color('black')
+        text = config.FONT_MED.render(winner_text, 1, text_color)
+        print(winner_text)
+
+        pad = 20
+        text_bg = pg.Surface((text.get_width()+pad, text.get_height()+subtext.get_height()))
+        text_bg_rect = text_bg.get_rect()
+        text_bg.fill(pg.Color('white'))
+        # setting the relative positions of texts on the background
+        text_bg.blit(text, text.get_rect(top=text_bg_rect.top, centerx=text_bg_rect.centerx))
+        text_bg.blit(subtext, subtext.get_rect(centery=text_bg_rect.centery+pad+10, centerx=text_bg_rect.centerx))
+        surface.blit(text_bg, text_bg.get_rect(center=config.SCREEN_RECT.center))
+
     def update(self):
         for k in self.players:
+            # re render text only if necessary
             if self.player_gold[k] != self.players[k].gold or self.player_incomes[k] != self.players[k].income:
                 self.player_gold[k] = self.players[k].gold
                 self.player_incomes[k] = self.players[k].income

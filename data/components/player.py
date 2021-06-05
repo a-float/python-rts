@@ -167,7 +167,8 @@ class Player:
     def draw_marker(self, surface):
         surface.blit(self.marker.image, self.marker.rect)
 
-    def draw_menus(self, surface):
+    def draw_menu(self, surface):
+        """Draws a choice menu if in build or upgrade mode"""
         if self.in_build_mode or self.in_upgrade_mode:
             surface.blit(*self.menu_image)
 

@@ -1,6 +1,6 @@
 # frequency is no of times per second
 BUILDING_DATA = {
-    'castle': {'health': 120, 'income': 2, 'cost': 0},
+    'castle': {'health': 1, 'income': 2, 'cost': 0},
     'tower': {'health': 60, 'cost': 10, 'damage': 5, 'fire_rate': 8, 'range': 0.035},  # 0.02 is roughly one tile
     'sniper_tower': {'health': 60, 'cost': 10, 'damage': 10, 'fire_rate': 1, 'range': 0.15},
     'magic_tower': {'health': 60, 'cost': 10, 'damage': 30, 'fire_rate': 2, 'range': 0.025},

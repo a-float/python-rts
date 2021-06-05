@@ -118,6 +118,7 @@ class Castle(Building):
 
     def get_destroyed(self):
         self.owner.lose()
+        super().get_destroyed()
         # no need to decrease the income as player is out
 
 

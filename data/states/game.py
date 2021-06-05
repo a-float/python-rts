@@ -24,10 +24,12 @@ class Game(state_machine.State):
         self.board = board.Board()
         self.players: Dict[int, Player] = {}
         self.UI = None
+        self.is_over: bool = False
         self.server: Optional[Server] = None  # if is not None, the game is online, and this Game is the host
         self.client: Optional[Client] = None  # if is None, the game is played offline
 
     def startup(self, now, persistent):
+        self.is_over = False
         print('game persistent is ', persistent)
         if 'game_data' not in persistent or type(persistent['game_data']) != GameData:
             raise IndexError('GAME startup: game_data key not present in the persistent dictionary.')
@@ -73,8 +75,29 @@ class Game(state_machine.State):
 
     def update(self, keys, now):
         """Update phase for the primary game state."""
-        self.UI.update()
-        self.board.update(now)
+        if not self.is_over:
+            self.is_over = self._is_over()
+            self.UI.update()
+            self.board.update(now)
+
+    def get_winner(self):
+        """
+        Finds the player who has not lost and returns him. If no one has survived returns None
+        Raises assertion error if called while the game is not over
+        """
+        assert self.is_over, 'To get the winner, the game must be over'
+        for player in self.players.values():
+            if not player.lost:
+                return player
+        return None
+
+    def _is_over(self):
+        """Returns True if at least two players haven't lost yet"""
+        still_playing = 0
+        for player in self.players.values():
+            if not player.lost:
+                still_playing += 1
+        return still_playing <= 1
 
     def draw(self, surface, interpolate):
         """Draw level and sidebar; if player is dead draw death sequence."""
@@ -85,7 +108,10 @@ class Game(state_machine.State):
         self.board.draw(surface, interpolate)
         for p in self.players.values():
             if not p.is_online:
-                p.draw_menus(surface)
+                p.draw_menu(surface)
+        if self.is_over:
+            print('Game is over')
+            self.UI.show_winner(surface, self.get_winner())
 
     def get_game_state(self):
         players_data = [{'gold': p.gold, 'income': p.income, 'pos': p.tile.index} for p in self.players.values()]

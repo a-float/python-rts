@@ -76,7 +76,7 @@ class Soldier(pg.sprite.Sprite):
                 # TODO image is flipped every frame. Should be checked only when the move vector changes
                 self.image = pg.transform.flip(self.image, True, False)
 
-        if self.tile.paths[self.owner.id] is None:  # tha path under the soldier has disappeared
+        if self.path.destroyed:  # tha path under the soldier has disappeared
             self.kill()
         if dist_sq(self.rect.center, self.path.tiles[self.tile_index].rect.center) >= 0.001:
             # print(self.move_vector, self.rect.center)
@@ -94,10 +94,8 @@ class Soldier(pg.sprite.Sprite):
 
     def get_attacked(self, damage):
         self.health -= damage
-        print("AUCH!!!  HP:  ", self.health)
         self.damage_timer = 10
         if self.health <= 0:
-            print("IM DEAD!")
             self.is_dead = True
 
     def attack(self, building):

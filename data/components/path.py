@@ -8,6 +8,7 @@ class Path(pg.sprite.Sprite):
         super().__init__(start_tile.board.path_group)
         self.tiles = []
         self.owner = player
+        self.destroyed = False
         self.color = tuple([int(0.8 * x) for x in self.owner.color])
         self.image = pg.Surface(config.SCREEN_SIZE)
         self.image.set_colorkey(config.COLORKEY)
@@ -26,6 +27,7 @@ class Path(pg.sprite.Sprite):
         self.update_image()
 
     def destroy(self):
+        self.destroyed = True
         for tile in self.tiles:
             tile.paths[self.owner.id] = None
         self.kill()
