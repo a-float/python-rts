@@ -105,7 +105,7 @@ class Board(Packable):
 
     def update(self, now):
         self.tile_group.update()
-        self.unit_group.update()
+        self.unit_group.update(now)
         self.bullet_group.update()
         for building in self.building_group.sprites():
             building.update(now)

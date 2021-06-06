@@ -28,6 +28,8 @@ SOLDIER_STATS = {
     'shields': {'health': 160, 'attack': 20}
 }
 
+SOLDIER_ANIM_FPS = 7
+
 
 # def get_stats_dict():
 #     return {

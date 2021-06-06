@@ -2,7 +2,8 @@ import math
 import pygame as pg
 from data import config
 from data.tools import dist_sq, get_health_surface
-from data.components.building_stats import SOLDIER_STATS
+from data.components.building_stats import SOLDIER_STATS, SOLDIER_ANIM_FPS
+from data.components.animation import Animation
 
 
 class Soldier(pg.sprite.Sprite):
@@ -21,8 +22,10 @@ class Soldier(pg.sprite.Sprite):
 
         self.flipped = False
         self.sprites = []
-        self.current_sprite = 0
-        self.movement_iter = 0
+        self.sprites.append(config.gfx['units'][self.name + '_soldier'])
+        self.sprites.append(config.gfx['units'][self.name + '_soldier_2'])
+        for i in range(len(self.sprites)):
+            self.sprites[i] = pg.transform.scale(self.sprites[i], (config.UNIT_SIZE,) * 2)
         self.speed = 1
         self.tile_index = 1
         self.damage_timer = 0
@@ -31,15 +34,12 @@ class Soldier(pg.sprite.Sprite):
         self.damage_rect = None
         self.is_dead = False
         self.dying_timer = 10
+        self.anim = Animation(self.sprites, SOLDIER_ANIM_FPS)
 
     def release(self, path):
         self.path = path
         self.tile = self.path.tiles[0]
         self.owner = self.tile.owner
-        self.sprites.append(config.gfx['units'][self.name+'_soldier'])
-        self.sprites.append(config.gfx['units'][self.name+'_soldier_2'])
-        for i in range(len(self.sprites)):
-            self.sprites[i] = pg.transform.scale(self.sprites[i], (config.UNIT_SIZE,) * 2)
         self.image = self.sprites[0]
         self.rect = self.image.get_rect(center=path.tiles[0].rect.center)
         self.move_vector = self.get_move_vector()
@@ -55,26 +55,18 @@ class Soldier(pg.sprite.Sprite):
         if self.tile.building is not None and self.tile.owner != self.owner:
             self.attack(self.tile.building)
 
-    def update(self):
+    def update(self, now):
         if self.is_dead:
             self.die()
             return
 
-        self.movement_iter += 1
-        if self.movement_iter % 10 == 0:
-            self.movement_iter = 0
-            self.current_sprite += 1
-            if self.current_sprite >= len(self.sprites):
-                self.current_sprite = 0
-            self.image = self.sprites[self.current_sprite]
-            self.image = pg.transform.scale(self.image, (config.UNIT_SIZE,) * 2)
-            if self.move_vector[0] < 0:
-                self.flipped = True
-            if self.move_vector[0] > 0:
-                self.flipped = False
-            if self.flipped:
-                # TODO image is flipped every frame. Should be checked only when the move vector changes
-                self.image = pg.transform.flip(self.image, True, False)
+        self.image = self.anim.get_next_frame(now)
+        if self.move_vector[0] < 0:
+            self.flipped = True
+        if self.move_vector[0] > 0:
+            self.flipped = False
+        if self.flipped:
+            self.image = pg.transform.flip(self.image, True, False)
 
         if self.path.destroyed:  # tha path under the soldier has disappeared
             self.kill()

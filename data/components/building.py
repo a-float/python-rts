@@ -4,6 +4,7 @@ from data.components.bullet import *
 from data.networking.packable import Packable
 from data.components.building_stats import *
 from data import config
+from data.components.animation import Animation
 
 
 class Building(pg.sprite.Sprite, Packable):
@@ -40,24 +41,19 @@ class Building(pg.sprite.Sprite, Packable):
         self.building_sprites = []
         self.building_sprites.append(config.gfx['utils']['building_anim'])
         self.building_sprites.append(config.gfx['utils']['building_anim_2'])
-        self.current_building_sprite = 0
-        # TODO this same as self.image???
+        for i in range(len(self.building_sprites)):
+            self.building_sprites[i] = pg.transform.scale(self.building_sprites[i], (config.TILE_SPRITE_SIZE,) * 2)
+        self.anim = Animation(self.building_sprites, fps=7)
         self.building_image = config.gfx['buildings'][building_name]
         self.building_image = pg.transform.scale(self.building_image, (config.TILE_SPRITE_SIZE,) * 2)
-        self.images = {}  # TODO this is not used anywhere?
 
     def update(self, now):
         """ Called every frame. Handles the building animation"""
         if not self.is_built:
             if self.health < self.max_health:
-                self.image = self.building_sprites[self.current_building_sprite]
-                # TODO should not scale in update
-                self.image = pg.transform.scale(self.image, (config.TILE_SPRITE_SIZE,) * 2)
+                self.image = self.anim.get_next_frame(now)
                 self.health += BUILDING_SPEED
-                if self.health % 10 == 0:
-                    self.current_building_sprite += 1
-                if self.current_building_sprite >= len(self.building_sprites):
-                    self.current_building_sprite = 0
+
             else:
                 self.health = self.max_health
                 self.image = self.building_image
