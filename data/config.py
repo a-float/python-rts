@@ -8,7 +8,7 @@ joysticks = [pg.joystick.Joystick(i) for i in range(pg.joystick.get_count())]
 # work if controller is connected via BT (otherwise 2 controllers are visible) dunno why :<, but it can be drivers issue
 
 
-WIDTH, HEIGHT = (int(1280 / 1.6), int(720 / 1.6))
+WIDTH, HEIGHT = (int(1280 / 1.4), int(720 / 1.4))
 SCREEN_SIZE = (WIDTH, HEIGHT)
 SCREEN_RECT = pg.Rect((0, 0), SCREEN_SIZE)
 _screen = pg.display.set_mode(SCREEN_SIZE)
@@ -16,12 +16,12 @@ BACKGROUND_COLOR = colors.LIGHT_GRAY
 COLORKEY = (255, 0, 255)  # treated as alpha - bright purple
 
 # Display until loading finishes.
-FONT_LARGE = pg.font.SysFont("comicsansms", 100)
-FONT_BIG = pg.font.SysFont("comicsansms", 50)
-FONT_MED = pg.font.SysFont("comicsansms", 39)
-FONT_SMED = pg.font.SysFont("comicsansms", 25)
-FONT_SMALL = pg.font.SysFont("comicsansms", 20)
-FONT_TINY = pg.font.SysFont("comicsansms", 18)
+FONT_LARGE = pg.font.SysFont("comicsansms", 110)
+FONT_BIG = pg.font.SysFont("comicsansms", 55)
+FONT_MED = pg.font.SysFont("comicsansms", 42)
+FONT_SMED = pg.font.SysFont("comicsansms", 29)
+FONT_SMALL = pg.font.SysFont("comicsansms", 25)
+FONT_TINY = pg.font.SysFont("comicsansms", 20)
 
 TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 8.36))
 BULLET_SIZE = int(TILE_SIZE * 0.8)
