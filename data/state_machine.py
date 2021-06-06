@@ -1,8 +1,3 @@
-"""
-A generalized state machine.  Most notably used for general program flow.
-"""
-
-
 class StateMachine(object):
     """
     A generic state machine.

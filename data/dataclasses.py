@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-
-from data.networking.client import Client
-from data.networking.server import Server
+from data.networking import Client, Server
 
 
 @dataclass

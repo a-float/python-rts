@@ -66,14 +66,13 @@ class Server:
 
     def _remove_client(self, sckt):
         self.clients[self.socket_id_dict[sckt]] = None
-        print(self.clients)
+        # print(self.clients)
         del self.socket_id_dict[sckt]
 
     def add_client(self, sckt, addr):
         new_id = self._get_available_id()
         self.clients[new_id] = ClientData(id=new_id+1, address=addr)
         self.socket_id_dict.update({sckt: new_id})
-        # print(self.socket_id_dict)
         self.read_list.append(sckt)
         sckt.sendall(str.encode(str(new_id+1)))
         self.send_state()
@@ -82,7 +81,7 @@ class Server:
         print("Connection from", addr)
 
     def send_state(self):
-        print("SERVER sending state")
+        # print("SERVER sending state")
         self.last_state_update = time.time()
         self.send_to_clients(pickle.dumps(('state', self.state_source.pack())))
 

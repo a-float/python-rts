@@ -1,32 +1,14 @@
-import pickle
-import sys
-import math
-from dataclasses import dataclass
-from typing import Any, Optional, Dict
+from typing import Optional, Dict
 import pygame as pg
-from data import state_machine, config, colors
-from data.components import board, UI
-from data.components.player import Player
+
 from data.dataclasses import GameData
+from data import state_machine, colors
+from data.components import board, UI, Player
 from data.networking import Client, Server, Receiver, Packable
 
 
-# TODO add receiver class? to online lobby as well
 class Game(state_machine.State, Packable, Receiver):
     """Core state for the actual gameplay."""
-
-    def pack(self):
-        return {
-            'board': self.board.pack(),
-            'players': [player.pack() for player in self.players.values()],
-        }
-
-    def unpack(self, data):
-        print('Game unpacking data: ', data)
-        self.board.unpack(data['board'])
-        for player_data in data['players']:
-            self.players[player_data['id']].unpack(player_data)
-
     def __init__(self):
         state_machine.State.__init__(self)
         self.board = board.Board(self)
@@ -35,7 +17,6 @@ class Game(state_machine.State, Packable, Receiver):
         self.is_over: bool = False
         self.server: Optional[Server] = None  # if is not None, the game is online, and this Game is the host
         self.client: Optional[Client] = None  # if is not None, the game is online, and this Game is a client
-        # self.online: bool = False  # if server and client are None, the game is played offline
 
     def startup(self, now, persistent):
         self.is_over = False
@@ -54,8 +35,7 @@ class Game(state_machine.State, Packable, Receiver):
                     p.is_online = True
 
         self.players = self.board.initialize(settings.map)
-        self.UI = UI.UI(self.players)
-        # set the client. If None, the game is played offline
+        self.UI = UI(self.players)
 
     def cleanup(self):
         if self.client and self.client.running:
@@ -67,7 +47,7 @@ class Game(state_machine.State, Packable, Receiver):
         return super().cleanup()
 
     def get_event(self, event):
-        if event.type == pg.KEYDOWN or event.type == pg.JOYBUTTONDOWN:  # TODO tmp escape to the menu
+        if event.type == pg.KEYDOWN or event.type == pg.JOYBUTTONDOWN:
             if not event.type == pg.JOYBUTTONDOWN and event.key == pg.K_ESCAPE:
                 self.board.clear()
                 self.next = 'MENU'
@@ -75,15 +55,18 @@ class Game(state_machine.State, Packable, Receiver):
             for p in self.players.values():
                 comm = p.get_command_from_event(event)
                 # send what you want to do to the server, and execute it when the servers responds
-                if self.client and comm is not None:
-                    self.client.send(f'action:{comm}')
-                else:  # playing offline, just execute the command
-                    p.execute_command(comm)
+                if comm is not None:
+                    if self.client :
+                        self.client.send(f'action:{comm}')
+                    else:  # playing offline, just execute the command
+                        p.execute_command(comm)
 
     def handle_message(self, message):
-        print('Game received message: ', message)
-        if message[0] == 'action':  # someone has pressed a key ('kdown', player id, command to execute)
-            self.players[message[1]].execute_command(message[2])
+        """Handle messages coming from the server via client"""
+        if message[0] == 'action' and self.server:  # someone made an action. the server owner should execute it
+            if message[1] in self.players:
+                self.players[message[1]].execute_command(message[2])
+            # else it's a spectator mashing buttons
         elif message[0] == 'state' and self.server is None:  # the state owner doesnt care about the state message
             self.unpack(message[1])
 
@@ -124,5 +107,15 @@ class Game(state_machine.State, Packable, Receiver):
             if not p.is_online:
                 p.draw_menu(surface)
         if self.is_over:
-            print('Game is over')
             self.UI.show_winner(surface, self.get_winner())
+
+    def pack(self):
+        return {
+            'board': self.board.pack(),
+            'players': [player.pack() for player in self.players.values()],
+        }
+
+    def unpack(self, data):
+        self.board.unpack(data['board'])
+        for player_data in data['players']:
+            self.players[player_data['id']].unpack(player_data)

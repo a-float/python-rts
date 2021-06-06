@@ -2,27 +2,12 @@ import math
 import pygame as pg
 from data import config
 from data.tools import dist_sq, get_health_surface, pos_to_relative, pos_to_absolute
-from data.components.building_stats import SOLDIER_STATS, SOLDIER_ANIM_FPS
+from data.building_stats import SOLDIER_STATS, SOLDIER_ANIM_FPS
 from data.tools import Animation
 from data.networking import Packable
 
 
 class Soldier(pg.sprite.Sprite, Packable):
-    def pack(self):
-        return {
-            'name': self.name,
-            'pos': pos_to_relative(self.rect.center),
-            'curr_path_index': self.path_tile_index,
-            'path_id': self.path.path_id,
-            'move_vector': self.move_vector,
-            'flipped': self.flipped
-        }
-
-    def unpack(self, data):
-        self.path_tile_index = data['curr_path_index']
-        self.rect.center = pos_to_absolute(data['pos'])
-        self.move_vector = data['move_vector']
-        self.flipped = data['flipped']
 
     def __init__(self, unit_name):
         pg.sprite.Sprite.__init__(self)
@@ -90,7 +75,8 @@ class Soldier(pg.sprite.Sprite, Packable):
             self.image = pg.transform.flip(self.image, True, False)
 
         if self.path.destroyed:  # tha path under the soldier has disappeared
-            self.kill()
+            self.is_dead = True
+            return
         if dist_sq(self.rect.center, self.path.tiles[self.path_tile_index].rect.center) >= 0.001:
             # print(self.move_vector, self.rect.center)
             self.rect.move_ip(*self.move_vector)
@@ -130,3 +116,19 @@ class Soldier(pg.sprite.Sprite, Packable):
         health_img = get_health_surface(health_ratio, config.TILE_SPRITE_SIZE*0.6, config.TILE_SPRITE_SIZE * 0.10)
         health_rect = health_img.get_rect(centerx=self.rect.centerx, top=self.rect.top - 4)
         surface.blit(health_img, health_rect)
+
+    def pack(self):
+        return {
+            'name': self.name,
+            'pos': pos_to_relative(self.rect.center),
+            'curr_path_index': self.path_tile_index,
+            'path_id': self.path.path_id,
+            'move_vector': self.move_vector,
+            'flipped': self.flipped
+        }
+
+    def unpack(self, data):
+        self.path_tile_index = data['curr_path_index']
+        self.rect.center = pos_to_absolute(data['pos'])
+        self.move_vector = data['move_vector']
+        self.flipped = data['flipped']

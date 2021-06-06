@@ -3,49 +3,13 @@ from typing import Optional, Tuple, Dict
 import pygame as pg
 from data import config
 from collections import OrderedDict
-from data.components.tile import Tile
-from data.networking.packable import Packable
-from data.components.player import Player
+from data.networking import Packable
 from data.dataclasses import MapConfig
-from data.components.path import Path
-from data.components.soldier import Soldier
+from data.components import Tile, Player, Path, Soldier
 
 
 class Board(Packable):
-    """ Contains and manages the tiles"""
-
-    def pack(self):
-        return {
-            'tiles': [tile.pack() for tile in self.tiles.values()],
-            'paths': [path.pack() for path in self.path_group.sprites()],
-            'soldiers': [soldier.pack() for soldier in self.unit_group.sprites()]
-        }
-
-    def unpack(self, data):
-        print('Board unpacking data: ', data)
-        # tiles
-        for i, tile in enumerate(self.tiles.values()):
-            # print(i, tile, data['tiles'][i])
-            tile.unpack(data['tiles'][i])
-
-        # paths
-        self.path_group.empty()
-        for path_data in data['paths']:
-            owner = self.game.players[path_data['owner_id']]
-            path = Path(self.get_tile_by_index(path_data['tile_indices'][0]), owner)
-            for i in range(1, len(path_data['tile_indices'])):  # skips the first tile
-                path.add_tile(self.get_tile_by_index(path_data['tile_indices'][i]))
-            path.unpack(path_data)
-            path.update_image()
-
-        # soldiers
-        self.unit_group.empty()
-        for soldier_data in data['soldiers']:
-            soldier = Soldier(soldier_data['name'])
-            soldier.release(self.get_path_by_id(soldier_data['path_id']))
-            soldier.unpack(soldier_data)
-            self.unit_group.add(soldier)
-
+    """ Contains and manages tiles, paths and units"""
     def __init__(self, game=None):
         self.tile_group = pg.sprite.Group()
         self.building_group = pg.sprite.Group()
@@ -162,3 +126,33 @@ class Board(Packable):
                 unit.draw_health(surface)
             for building in self.building_group.sprites():
                 building.draw_health(surface)
+
+    def pack(self):
+        return {
+            'tiles': [tile.pack() for tile in self.tiles.values()],
+            'paths': [path.pack() for path in self.path_group.sprites()],
+            'soldiers': [soldier.pack() for soldier in self.unit_group.sprites()]
+        }
+
+    def unpack(self, data):
+        # tiles
+        for i, tile in enumerate(self.tiles.values()):
+            tile.unpack(data['tiles'][i])
+
+        # paths
+        self.path_group.empty()
+        for path_data in data['paths']:
+            owner = self.game.players[path_data['owner_id']]
+            path = Path(self.get_tile_by_index(path_data['tile_indices'][0]), owner)
+            for i in range(1, len(path_data['tile_indices'])):  # skips the first tile
+                path.add_tile(self.get_tile_by_index(path_data['tile_indices'][i]))
+            path.unpack(path_data)
+            path.update_image()
+
+        # soldiers
+        self.unit_group.empty()
+        for soldier_data in data['soldiers']:
+            soldier = Soldier(soldier_data['name'])
+            soldier.release(self.get_path_by_id(soldier_data['path_id']))
+            soldier.unpack(soldier_data)
+            self.unit_group.add(soldier)

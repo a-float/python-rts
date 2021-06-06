@@ -4,7 +4,7 @@ from _thread import *
 
 
 class Client:
-    def __init__(self, receiver, name: str, ip: str = '127.0.0.1'):
+    def __init__(self, receiver, name: str, ip: str = '127.0.0.1', is_scout=False):
         self.receiver = receiver
         self.name: str = name
         self.ip = ip if ip != '' else '127.0.0.1'
@@ -12,7 +12,7 @@ class Client:
         self.addr: (str, int) = (self.ip, 5555)
         self.player_id = self.connect()
         self.running = False
-        if self.player_id:
+        if self.player_id and not is_scout:
             self.running = True
             start_new_thread(threaded_client, (self.socket, lambda: self.running, lambda: self.receiver))
 
@@ -26,7 +26,7 @@ class Client:
     def connect(self):
         try:
             print('Connecting to address ', self.addr)
-            self.socket.settimeout(3)
+            self.socket.settimeout(2)
             self.socket.connect(self.addr)
             self.socket.settimeout(None)
             print('Connected to address ', self.addr)
@@ -40,12 +40,10 @@ class Client:
 
     def send(self, data):
         try:
-            if type(data) == str:  # TODO always pickle
-                print(f'sending a string: {data}')
+            if type(data) == str:
                 self.socket.send(str.encode(data))
             else:
-                print(f'sending an object: {data}')
-                self.socket.send(pickle.dumps(data))
+                raise ValueError("Client can only send strings")
         except socket.error as e:
             print(e)
 
@@ -58,7 +56,6 @@ def threaded_client(conn, is_running, receiver):
                 break
             else:
                 data = (pickle.loads(data))
-                print('CLIENT GOT ', data)
                 receiver().handle_message(data)
         except socket.error as e:
             print("Something went wrong:", e)

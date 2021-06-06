@@ -1,11 +1,7 @@
-"""
-Contains functionality for uni and bidirectional menus as well as for the board preview and text field element.
-"""
-
 import pygame as pg
 import typing
 from . import config, state_machine, colors
-from data.components.board import Board
+from data.components import Board
 from .dataclasses import MapConfig
 
 
@@ -102,12 +98,16 @@ def render_font(font, msg, color, center) -> [pg.Surface, pg.Rect]:
     return msg, rect
 
 
-def make_text_list(font, strings, colors, start, space, vertical=True, perp_center=None):
+def make_text_list(font, strings, colours, start, space, vertical=True, perp_center=None):
     """
-    Takes a list of strings and returns a list of
-    (rendered_surface, rect) tuples. The rects are centered on the screen
-    and their y coordinates begin at starty, with y_space pixels between  #TODO update the description
-    each line.
+    Takes a list of strings and returns a list of (rendered_surface, rect) tuples.
+    :param font: font to use while rendering
+    :param strings: text list elements labels
+    :param colours: i-th text is has color colour[i]
+    :param start: start position on the main axis
+    :param space: spacing between the elements on the main axis
+    :param vertical: direction of the list. If False its a row
+    :param perp_center: the center of the list on the axis perpendicular to the main one
     """
     if vertical:
         perp_center = perp_center if perp_center else config.SCREEN_RECT.centerx
@@ -119,20 +119,20 @@ def make_text_list(font, strings, colors, start, space, vertical=True, perp_cent
             msg_center = (perp_center, start + i * space)
         else:
             msg_center = (start + i * space, perp_center)
-        color = colors[i] if type(colors) == list else colors  # TODO what if color is passed as a list [int, int, int]
-        msg_data = render_font(font, string, color, msg_center)
+        colour = colours[i] if type(colours) == list else colours
+        msg_data = render_font(font, string, colour, msg_center)
         rendered_text.append(msg_data)
     return rendered_text
 
 
 def make_options(font, choices, start, space, vertical=True, perp_center=None):
     """
-    Makes prerendered (text,rect) tuples for basic text menus.
+    Makes pre-rendered (text,rect) tuples for basic text menus.
     Both selected and non-selected versions are made of each.
     Used by both the Option and Confirm menus.
     """
     options = {}
-    args = [font, choices, colors.WHITE, start, space, vertical, perp_center]
+    args = [font, choices, pg.Color('white'), start, space, vertical, perp_center]
     options["inactive"] = make_text_list(*args)
     args = [font, choices, colors.BLUE, start, space, vertical, perp_center]
     options["active"] = make_text_list(*args)
@@ -170,21 +170,24 @@ class BoardPreview:
 
         center_x, center_y = config.SCREEN_RECT.center
 
+        # the map itself
         surface = pg.Surface(config.SCREEN_SIZE)
-        surface.fill(colors.WHITE)
+        surface.fill(pg.Color('white'))
         self.board.draw(surface, 0, draw_health=False)
         preview = pg.transform.scale(surface, self.preview_size)
         preview_x = max(35 + self.preview_size[0] * 0.5, center_x - self.preview_size[0] * 0.5 - 50)
         preview_rect = preview.get_rect(center=(preview_x, center_y))
         self.rendered['preview'] = (preview, preview_rect)
 
-        map_name = config.FONT_SMALL.render(self.current_map[0], 1, colors.BLACK)
+        # map's name
+        map_name = config.FONT_SMALL.render(self.current_map[0], 1, pg.Color('black'))
         map_name_rect = map_name.get_rect(center=(preview_x, center_y - self.preview_size[1] * 0.5 - 30))
         self.rendered['map_name'] = (map_name, map_name_rect)
 
-        map_help_name = config.FONT_TINY.render('Press a or d to change the selected map', 1, colors.BLACK)
+        # bottom help text
+        map_help_name = config.FONT_TINY.render('Press a or d to change the map', 1, pg.Color('black'))
         map_help_rect = map_help_name.get_rect(center=(preview_x, center_y + self.preview_size[1] * 0.5 + 15))
-        self.rendered['map_help'] = (map_help_name, map_help_rect)  # TODO this should be in render but whatever
+        self.rendered['map_help'] = (map_help_name, map_help_rect)
 
     def clear(self):
         self.board.clear()

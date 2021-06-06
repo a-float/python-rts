@@ -8,8 +8,7 @@ joysticks = [pg.joystick.Joystick(i) for i in range(pg.joystick.get_count())]
 # work if controller is connected via BT (otherwise 2 controllers are visible) dunno why :<, but it can be drivers issue
 
 
-
-WIDTH, HEIGHT = (int(1280/2), int(720/2))
+WIDTH, HEIGHT = (int(1280 / 1.6), int(720 / 1.6))
 SCREEN_SIZE = (WIDTH, HEIGHT)
 SCREEN_RECT = pg.Rect((0, 0), SCREEN_SIZE)
 _screen = pg.display.set_mode(SCREEN_SIZE)
@@ -17,20 +16,21 @@ BACKGROUND_COLOR = colors.LIGHT_GRAY
 COLORKEY = (255, 0, 255)  # treated as alpha - bright purple
 
 # Display until loading finishes.
-FONT_BIG = pg.font.SysFont("comicsansms", 100)  # chose a different font, maybe a monospace one
-FONT_MED = pg.font.SysFont("comicsansms", 50)
-FONT_SMED = pg.font.SysFont("comicsansms", 35)
-FONT_SMALL = pg.font.SysFont("comicsansms", 25)
-FONT_TINY = pg.font.SysFont("comicsansms", 15)
+FONT_LARGE = pg.font.SysFont("comicsansms", 100)
+FONT_BIG = pg.font.SysFont("comicsansms", 50)
+FONT_MED = pg.font.SysFont("comicsansms", 39)
+FONT_SMED = pg.font.SysFont("comicsansms", 25)
+FONT_SMALL = pg.font.SysFont("comicsansms", 20)
+FONT_TINY = pg.font.SysFont("comicsansms", 18)
 
 TILE_SIZE = math.floor((min(WIDTH, HEIGHT) / 8.36))
-BULLET_SIZE = int(TILE_SIZE*0.8)
+BULLET_SIZE = int(TILE_SIZE * 0.8)
 
 UNIT_SIZE = int(TILE_SIZE / 1.8)
 TILE_SPRITE_SIZE = TILE_SIZE - 10  # this offset needs to be even for the player marker to display symmetrically
 # not used rn
 
-
+# loading screen
 _screen.fill(colors.BLUE)
 _render = FONT_BIG.render("LOADING...", True, pg.Color("white"))
 _screen.blit(_render, _render.get_rect(center=SCREEN_RECT.center))
@@ -60,14 +60,13 @@ DEFAULT_CONTROLS_2 = {pg.K_s: "down",
                       pg.K_q: "upgrade"
                       }
 
-DEFAULT_CONTROLS_CONTROLLER = {12: "down",   # d-pad down
-                               11: "up",     # d-pad up
-                               13: "left",   # d-pad left
+DEFAULT_CONTROLS_CONTROLLER = {12: "down",  # d-pad down
+                               11: "up",  # d-pad up
+                               13: "left",  # d-pad left
                                14: "right",  # d-pad right
                                0: "action",  # cross/a
                                2: "upgrade"  # square/x
                                }
-
 
 CONTROLS = {
     PLAYER_1: DEFAULT_CONTROLS_1,
@@ -108,7 +107,7 @@ OPPOSITE_DIRECTIONS = {"up": "down",
                        }
 
 MAPS = {
-    "Big Rumble": "\
+    "The Rumble": "\
 oo..1o..oo\n\
 4ooooooooo\n\
 oooooooooo\n\
@@ -116,18 +115,35 @@ ooooooo...\n\
 ooooooo3oo\n\
 o2..oo..oo\n\
 "
-    , "Small Rumble": "\
-oo..0o..o4\n\
-1ooooooooo\n\
-ooooooo3oo\n\
-oo2oooo...\n\
-"
     , 'Canions': "\
 1oooo.oooo2\n\
 ooooo.ooooo\n\
 ...ooooo...\n\
 ooooooooooo\n\
 3oooo.oooo4\n\
+"
+    , 'Big Rumble': "\
+oo..ooo.ooo\n\
+4ooo..oooo1\n\
+ooooooooooo\n\
+o..ooooo...\n\
+2ooo.oooooo\n\
+oo..oooo.o3\n\
+"
+    , 'The Donut': "\
+.ooooooooo.\n\
+o1o..o..o3o\n\
+oo...o...oo\n\
+oo...o...oo\n\
+o4o..o..o2o\n\
+.ooooooooo.\n\
+"
+, 'Final Duel': "\
+....ooo....\n\
+ooooooooooo\n\
+1ooo...ooo2\n\
+ooooooooooo\n\
+....ooo....\n\
 "
 }
 
@@ -147,7 +163,7 @@ def load_gfx_from_dirs(dirs):
     GFX = {}
     for directory in dirs:
         path = os.path.join(base_path, directory)
-        GFX[directory] = tools.load_all_gfx(path)
+        GFX[directory] = tools.load_all_gfx(path, COLORKEY)
     return GFX
 
 

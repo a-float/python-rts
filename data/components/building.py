@@ -1,24 +1,14 @@
-from data.components.soldier import Soldier
+import pygame as pg
+from data.components.soldier import Soldier, dist_sq
 from data.tools import pos_to_relative, get_health_surface
-from data.components.bullet import *
-from data.networking.packable import Packable
-from data.components.building_stats import *
+from data.networking import Packable
+from data.components import Bullet
+from data.building_stats import *
 from data import config
 from data.tools import Animation
 
 
 class Building(pg.sprite.Sprite, Packable):
-    def pack(self):
-        return {
-            'name': self.name,
-            'health': self.health,
-            'is_built': self.is_built,
-        }
-
-    def unpack(self, data):
-        self.health = data['health']
-        self.is_built = data['is_built']
-
     def __init__(self, tile, building_name):
         super().__init__()
         self.name = building_name
@@ -114,6 +104,17 @@ class Building(pg.sprite.Sprite, Packable):
         health_rect = health_img.get_rect(centerx=self.tile.rect.centerx, top=self.tile.rect.top+5)
         surface.blit(health_img, health_rect)
 
+    def pack(self):
+        return {
+            'name': self.name,
+            'health': self.health,
+            'is_built': self.is_built,
+        }
+
+    def unpack(self, data):
+        self.health = data['health']
+        self.is_built = data['is_built']
+
 
 class Castle(Building):
     def __init__(self, tile):
@@ -145,7 +146,6 @@ class Tower(Building):
             if soldier.owner != self.owner and dist_sq(pos_to_relative(soldier.rect.center), pos_to_relative(self.rect.center)) < self.range:
                 self.tile.board.add_bullet(Bullet(self.bullet_image, self.rect.center, soldier, self.damage))
                 self.delay = 1/self.fire_rate
-                print('Paf paf i shoot')
                 break
 
 
@@ -179,7 +179,7 @@ class Barracks(Building):
             soldier = self.soldier_queue.pop(0)
             soldier.release(self.tile.paths[self.owner.id])
             self.tile.board.add_unit(soldier)
-            print(f"Releasing a players {soldier.tile.owner.id} soldier")
+            # print(f"Releasing a players {soldier.tile.owner.id} soldier")
 
     def passive(self):
         self.try_to_train_soldiers()

@@ -1,8 +1,7 @@
-import data.config as config
-from data.networking.packable import Packable
+import pygame as pg
+from data.networking import Packable
 from data import colors
 from data.components import building
-from data.components.soldier import *
 
 
 class Tile(pg.sprite.Sprite, Packable):

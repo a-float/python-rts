@@ -1,19 +1,14 @@
-"""
-This module contains the fundamental Control class.
-Also contained here are resource loading functions.
-"""
-
 import os
 import pygame as pg
 import threading
 from data import state_machine, config
 
-TIME_PER_UPDATE = 16.0  # Milliseconds
+TIME_PER_UPDATE = 16.0  # ~= 1000ms/60f = 62.5fps
 
 
 class Control(object):
     """
-    Control class for entire project. Contains the game loop, and contains
+    Control class for entire project. Contains the game loop, and
     the event_loop which passes events to States as needed.
     """
 
@@ -29,9 +24,7 @@ class Control(object):
         self.state_machine = state_machine.StateMachine()
 
     def update(self):
-        """
-        Updates the currently active state.
-        """
+        """Updates the currently active state."""
         self.now = pg.time.get_ticks()
         self.state_machine.update(self.keys, self.now)
 
@@ -65,9 +58,7 @@ class Control(object):
                 pg.display.set_caption(self.caption)
 
     def show_fps(self):
-        """
-        Display the current FPS in the window handle if fps_visible is True.
-        """
+        """ Display the current FPS in the window handle if fps_visible is True."""
         if self.fps_visible:
             fps = self.clock.get_fps()
             with_fps = "{} - {:.2f} FPS".format(self.caption, fps)
@@ -86,7 +77,7 @@ class Control(object):
 
 
 # Resource loading functions.
-def load_all_gfx(directory, colorkey=(255, 0, 255), accept=(".png", ".jpg", ".bmp")):
+def load_all_gfx(directory, colorkey, accept=(".png", ".jpg", ".bmp")):
     """
     Load all graphics with extensions in the accept argument.  If alpha
     transparency is found in the image the image will be converted using
@@ -147,7 +138,9 @@ def get_health_surface(health_ratio, width, height):
     health_img.fill(col)
     return health_img
 
+
 class Animation:
+    """Simplifies animation handling"""
     def __init__(self, frames, fps):
         self.frames = frames
         self.fps = fps
@@ -155,7 +148,6 @@ class Animation:
         self.timer = None
 
     def get_next_frame(self, now):
-
         if not self.timer:
             self.timer = now
         if now - self.timer > 1000.0 / self.fps:

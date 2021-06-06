@@ -1,7 +1,7 @@
 from data.components.building import Barracks
 import pygame as pg
 from data import config
-from data.networking.packable import Packable
+from data.networking import Packable
 
 
 class Path(pg.sprite.Sprite, Packable):

@@ -1,8 +1,8 @@
 import pygame as pg
-import data.config as config
-from data.components.player import Player
-from data.components.building_stats import BUILDING_DATA as data
 from typing import Dict, Any
+import data.config as config
+from data.components import Player
+from data.building_stats import BUILDING_DATA as DATA
 
 
 class UI(pg.sprite.Sprite):
@@ -21,9 +21,9 @@ class UI(pg.sprite.Sprite):
         }
         for k in self.players:
             self.draw_dynamic_info(k)
-        text = f'Costs: tower: {data["tower"]["cost"]}g market: {data["market"]["cost"]}g barracks: {data["barracks"]["cost"]}g'
-        self.bottom_info = config.FONT_SMALL.render(text, 1, pg.Color('black'))
-        self.bottom_info_rect = self.bottom_info.get_rect(centerx=config.SCREEN_RECT.centerx, bottom=config.SCREEN_RECT.bottom-20)
+        text = f'Costs: tower={DATA["tower"]["cost"]}g, market={DATA["market"]["cost"]}g, barracks={DATA["barracks"]["cost"]}g, upgrades=10g'
+        self.bottom_info = config.FONT_TINY.render(text, 1, pg.Color('black'))
+        self.bottom_info_rect = self.bottom_info.get_rect(centerx=config.SCREEN_RECT.centerx, bottom=config.SCREEN_RECT.bottom-5)
 
     def draw_dynamic_info(self, player_no: int):
         # big enough but not too big
@@ -32,7 +32,7 @@ class UI(pg.sprite.Sprite):
         income_font = config.FONT_SMALL
 
         info_height = income_font.get_height() + gold_font.get_height()
-        info = pg.Surface((int(config.WIDTH*0.14), info_height))
+        info = pg.Surface((int(config.WIDTH*0.14), info_height+10))
         info.fill(pg.Color('white'))
         gold_text = gold_font.render(str(self.player_gold[player_no])+'$', 1, player_color, pg.Color('white'))
         income_text = income_font.render(f'+{int(self.player_incomes[player_no])}$/s', 1, player_color, pg.Color('white'))
@@ -46,17 +46,17 @@ class UI(pg.sprite.Sprite):
             'rect': info.get_rect(**kwargs)
         }
 
-    def show_winner(self, surface, winner: Player):
+    @staticmethod
+    def show_winner(surface, winner: Player):
         help_message = 'Press ESC to quit'
         subtext = config.FONT_TINY.render(help_message, 1, pg.Color('black'))
 
-        winner_text = (f'Player {winner.id}' if winner else 'No one') + ' has won!'
+        winner_text = (f'Player {winner.id} has won!' if winner else 'There is no winner')
         text_color = winner.color if winner else pg.Color('black')
         text = config.FONT_MED.render(winner_text, 1, text_color)
-        print(winner_text)
 
         pad = 20
-        text_bg = pg.Surface((text.get_width()+pad, text.get_height()+subtext.get_height()))
+        text_bg = pg.Surface((config.WIDTH, 20+text.get_height()+subtext.get_height()))
         text_bg_rect = text_bg.get_rect()
         text_bg.fill(pg.Color('white'))
         # setting the relative positions of texts on the background

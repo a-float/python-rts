@@ -1,29 +1,16 @@
 import pickle
 from typing import Optional, Dict, List
-import names
+import time
 
 import pygame as pg
 from data import menu_utils, config, colors
 from data.dataclasses import GameData
 from data.menu_utils import BasicMenu, BoardPreview
 from data.networking import Server, ClientData, Client, Receiver, Packable
-from data.components import building_stats
 
 
 class OnlineLobby(BasicMenu, Packable, Receiver):
-    def pack(self):
-        if not self.server:
-            return {}
-        return {
-            'map_index': self.board_preview.map_index,
-            'clients': self.server.clients
-        }
-
-    def unpack(self, data):
-        if self.board_preview.map_index != data['map_index']:
-            self.board_preview.set_map(data['map_index'])
-        self.render_players(data['clients'])
-
+    """Players connect and wait choose the settings before the game begins"""
     def __init__(self):
         super().__init__(2)
         self.image = pg.Surface(config.SCREEN_SIZE).convert()
@@ -33,7 +20,7 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
         # start with 0 bots and one player - host
         self.board_preview: BoardPreview = BoardPreview(players_no=1, size=preview_size)
         self.rendered: Dict[str, (pg.Surface, pg.Rect)] = {}
-        self.board_preview.change_map(0) # TODO get actual online map
+        self.board_preview.change_map(0)
         self.server: Optional[Server] = None
         self.client: Optional[Client] = None
         self.is_host: bool = False
@@ -51,13 +38,22 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
         """
         print(persistent)
         if persistent['is_host']:
+            self.client = Client(self, 'scout', is_scout=True)
+            if self.client.player_id is not None:
+                # the client has connected to the server => the server is already up, go back to mode select
+                self.next = 'ONLINE_MODE_SELECT'
+                self.persist.update({'notification': 'The server is already hosted'})
+                self.done = True
+                time.sleep(0.1)  # give server a moment to parse the set_name command
+                self.client.close()
+
             self.is_host = True
             self.server = Server(self)
-            self.server.set_state_source(self, update_delay=2)
+            self.server.set_state_source(self, update_delay=0.5)
             self.server.run()
-            self.client = Client(self, names.get_first_name())
+            self.client = Client(self, persistent['player_name'])
         else:
-            self.client = Client(self, names.get_first_name(), persistent['ip'])
+            self.client = Client(self, persistent['player_name'], persistent['ip'])
             if not self.client.running:
                 self.next = 'ONLINE_MODE_SELECT'
                 self.persist.update({'notification': 'Could not connect to the server {}'.format(persistent['ip'])})
@@ -75,7 +71,7 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
 
     def render_players(self, clients: List[Optional[ClientData]]):
         center_x, center_y = config.SCREEN_RECT.center
-        strings = [f'{c.id}. {c.name} - {c.address[0]}' for c in clients if c]
+        strings = [f'{c.id}. {c.name[:10]} - {c.address[0]}' for c in clients if c]
         cols = [config.PLAYER_COLORS[c.id] for c in clients if c]
         args = [config.FONT_SMALL, strings, cols, center_y * 0.38, 35, True, center_x * 1.48]
         self.rendered['players'] = menu_utils.make_text_list(*args)
@@ -101,19 +97,20 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
         self.rendered['players'] = []
 
     def handle_message(self, message):
-        print('got message ', message)
-        if message[0] == 'init':  # {'init': map (MapConfig)}
+        if message[0] == 'init':  # ['init', map:MapConfig]
             self.start_game(message[1])
         elif message[0] == 'state':
-            self.unpack(message[1])
+            self.unpack(message[1])  # ['state', state_data: Dict]
 
     def get_event(self, event):
         super().get_event(event)
         if self.server and event.type == pg.KEYDOWN:
             if event.key == pg.K_a:
                 self.board_preview.change_map(-1)
+                self.server.send_state()
             elif event.key == pg.K_d:
                 self.board_preview.change_map(1)
+                self.server.send_state()
 
     def pressed_exit(self):
         self.next = 'MAIN'
@@ -164,3 +161,16 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
         })
         self.preserve_network = True
         self.quit = True  # leave the menu state manager and start the game
+
+    def pack(self):
+        if not self.server:
+            return {}
+        return {
+            'map_index': self.board_preview.map_index,
+            'clients': self.server.clients
+        }
+
+    def unpack(self, data):
+        if self.board_preview.map_index != data['map_index']:
+            self.board_preview.set_map(data['map_index'])
+        self.render_players(data['clients'])

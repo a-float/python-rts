@@ -1,10 +1,10 @@
 import pygame as pg
 from typing import Dict, List, Any
-from data.components.tile import Tile
 from data import config
-from data.components.path import PathBuilder
-from data.networking.packable import Packable
-from data.components.building_stats import BUILDING_DATA
+from data.networking import Packable
+
+from data.components import Tile, PathBuilder
+from data.building_stats import BUILDING_DATA
 from data.components.building import Barracks, Tower, Market
 
 
@@ -26,7 +26,7 @@ class Player(Packable):
         self.in_build_mode: bool = False
         self.path_builder: PathBuilder = PathBuilder(self)
         self.is_online: bool = False  # if True, the player can't be controlled via the keyboard
-        self.current_menu_images = None
+        self.current_menu_image_name = ""  # used in the online mode
         self.menu_images = self.create_menu_images()
         self.menu_image: Any[List[pg.Surface, pg.Rect]] = None
 
@@ -40,6 +40,7 @@ class Player(Packable):
         return res
 
     def set_menu_image(self, menu_name):
+        self.current_menu_image_name = menu_name
         image = self.menu_images[menu_name]
         rect = image.get_rect(center=self.tile.rect.center)
         self.menu_image = [image, rect]
@@ -172,16 +173,19 @@ class Player(Packable):
             'gold': self.gold,
             'income': self.income,
             'tile_index': self.tile.index,
-            # 'in_build_mode': self.in_build_mode,
-            # 'in_upgrade_mode': self.in_upgrade_mode
+            'in_build_mode': self.in_build_mode,
+            'in_upgrade_mode': self.in_upgrade_mode,
+            'menu_name': self.current_menu_image_name,
         }
 
     def unpack(self, data):
         self.gold = data['gold']
         self.income = data['income']
         self.tile = self.board.get_tile_by_index(data['tile_index'])
-        # self.in_build_mode = data['in_build_mode']
-        # self.in_upgrade_mode = data['in_upgrade_mode']
+        self.in_build_mode = data['in_build_mode']
+        self.in_upgrade_mode = data['in_upgrade_mode']
+        if self.current_menu_image_name != data['menu_name']:
+            self.set_menu_image(data['menu_name'])
 
     def draw_marker(self, surface):
         self.marker.set_position(self.tile.rect.center)
