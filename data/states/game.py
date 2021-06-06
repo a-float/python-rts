@@ -68,8 +68,8 @@ class Game(state_machine.State, Packable):
         return super().cleanup()
 
     def get_event(self, event):
-        if event.type == pg.KEYDOWN:  # TODO tmp escape to the menu
-            if event.key == pg.K_ESCAPE:
+        if event.type == pg.KEYDOWN or event.type == pg.JOYBUTTONDOWN:  # TODO tmp escape to the menu
+            if not event.type == pg.JOYBUTTONDOWN and event.key == pg.K_ESCAPE:
                 self.board.clear()
                 self.next = 'MENU'
                 self.done = True
