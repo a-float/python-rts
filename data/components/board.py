@@ -7,6 +7,8 @@ from data.components.tile import Tile
 from data.networking.packable import Packable
 from data.components.player import Player
 from data.dataclasses import MapConfig
+from data.components.path import Path
+from data.components.soldier import Soldier
 
 
 class Board(Packable):
@@ -14,14 +16,35 @@ class Board(Packable):
 
     def pack(self):
         return {
-            'tiles': [tile.pack() for tile in self.tiles.values()]
+            'tiles': [tile.pack() for tile in self.tiles.values()],
+            'paths': [path.pack() for path in self.path_group.sprites()],
+            'soldiers': [soldier.pack() for soldier in self.unit_group.sprites()]
         }
 
     def unpack(self, data):
         print('Board unpacking data: ', data)
+        # tiles
         for i, tile in enumerate(self.tiles.values()):
             # print(i, tile, data['tiles'][i])
             tile.unpack(data['tiles'][i])
+
+        # paths
+        self.path_group.empty()
+        for path_data in data['paths']:
+            owner = self.game.players[path_data['owner_id']]
+            path = Path(self.get_tile_by_index(path_data['tile_indices'][0]), owner)
+            for i in range(1, len(path_data['tile_indices'])):  # skips the first tile
+                path.add_tile(self.get_tile_by_index(path_data['tile_indices'][i]))
+            path.unpack(path_data)
+            path.update_image()
+
+        # soldiers
+        self.unit_group.empty()
+        for soldier_data in data['soldiers']:
+            soldier = Soldier(soldier_data['name'])
+            soldier.release(self.get_path_by_id(soldier_data['path_id']))
+            soldier.unpack(soldier_data)
+            self.unit_group.add(soldier)
 
     def __init__(self, game=None):
         self.tile_group = pg.sprite.Group()
@@ -43,6 +66,12 @@ class Board(Packable):
             else:
                 results[name] = None
         return results
+
+    def get_path_by_id(self, path_id):
+        for path in self.path_group.sprites():
+            if path.path_id == path_id:
+                return path
+        return None
 
     def initialize(self, settings: MapConfig, tile_size=config.TILE_SIZE):
         self.settings = settings
@@ -89,6 +118,8 @@ class Board(Packable):
         return players[player_no]
 
     def build_on_tile(self, tile, building_name):
+        if tile.building:
+            raise RuntimeError('Can not build on a tile with a building')
         new_building = tile.build(building_name)
         if new_building is not None:
             self.building_group.add(new_building)

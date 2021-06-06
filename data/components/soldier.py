@@ -1,12 +1,29 @@
 import math
 import pygame as pg
 from data import config
-from data.tools import dist_sq, get_health_surface
+from data.tools import dist_sq, get_health_surface, pos_to_relative, pos_to_absolute
 from data.components.building_stats import SOLDIER_STATS, SOLDIER_ANIM_FPS
-from data.components.animation import Animation
+from data.tools import Animation
+from data.networking import Packable
 
 
-class Soldier(pg.sprite.Sprite):
+class Soldier(pg.sprite.Sprite, Packable):
+    def pack(self):
+        return {
+            'name': self.name,
+            'pos': pos_to_relative(self.rect.center),
+            'curr_path_index': self.path_tile_index,
+            'path_id': self.path.path_id,
+            'move_vector': self.move_vector,
+            'flipped': self.flipped
+        }
+
+    def unpack(self, data):
+        self.path_tile_index = data['curr_path_index']
+        self.rect.center = pos_to_absolute(data['pos'])
+        self.move_vector = data['move_vector']
+        self.flipped = data['flipped']
+
     def __init__(self, unit_name):
         pg.sprite.Sprite.__init__(self)
         stats = SOLDIER_STATS[unit_name]
@@ -27,7 +44,7 @@ class Soldier(pg.sprite.Sprite):
         for i in range(len(self.sprites)):
             self.sprites[i] = pg.transform.scale(self.sprites[i], (config.UNIT_SIZE,) * 2)
         self.speed = 1
-        self.tile_index = 1
+        self.path_tile_index = 1
         self.damage_timer = 0
         self.damage_image = config.gfx['utils']['boom']
         self.damage_image = pg.transform.scale(self.damage_image, (config.TILE_SPRITE_SIZE,) * 2)
@@ -45,7 +62,11 @@ class Soldier(pg.sprite.Sprite):
         self.move_vector = self.get_move_vector()
 
     def get_move_vector(self):
-        src, to = self.rect.center, self.path.tiles[self.tile_index].rect.center
+        try:
+            src, to = self.rect.center, self.path.tiles[self.path_tile_index].rect.center
+        except IndexError:  # the path has changed, unit has to die [*]
+            self.is_dead = True
+            return None
         hypot = math.sqrt(dist_sq(src, to))
         scale = self.speed
         dx, dy = (to[0] - src[0]) / hypot * scale, (to[1] - src[1]) / hypot * scale
@@ -70,18 +91,18 @@ class Soldier(pg.sprite.Sprite):
 
         if self.path.destroyed:  # tha path under the soldier has disappeared
             self.kill()
-        if dist_sq(self.rect.center, self.path.tiles[self.tile_index].rect.center) >= 0.001:
+        if dist_sq(self.rect.center, self.path.tiles[self.path_tile_index].rect.center) >= 0.001:
             # print(self.move_vector, self.rect.center)
             self.rect.move_ip(*self.move_vector)
         else:  # soldier has arrived at the target tile
             self.try_to_attack()
 
             # try to go to the next tile
-            if self.tile_index == len(self.path.tiles)-1:  # soldier disappears upon reaching the end of the path
+            if self.path_tile_index == len(self.path.tiles)-1:  # soldier disappears upon reaching the end of the path
                 self.kill()
             else:
-                self.tile_index += 1
-                self.tile = self.path.tiles[self.tile_index]
+                self.path_tile_index += 1
+                self.tile = self.path.tiles[self.path_tile_index]
                 self.move_vector = self.get_move_vector()
 
     def get_attacked(self, damage):

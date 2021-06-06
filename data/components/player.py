@@ -48,31 +48,15 @@ class Player(Packable):
         self.is_online = is_online
 
     def get_command_from_event(self, event):
-
-        print(event)
-
         if event.type == pg.KEYDOWN or event.type == pg.JOYBUTTONDOWN:
-
-            print(event)
-
             event_key = None
             if event.type == pg.KEYDOWN:
                 event_key = event.key
             if event.type == pg.JOYBUTTONDOWN and event.joy == self.controller:
                 event_key = event.button
-
             if event_key in self.controls.keys():
                 command = self.controls[event_key]
                 return command
-
-
-        # if event.type == pg.KEYDOWN:
-        #     if self.controls is None or self.is_online:
-        #         # TODO controls for player no 3 and 4
-        #         return None
-        #     if event.key in self.controls.keys():
-        #         command = self.controls[event.key]
-        #         return command
 
     def execute_command(self, command):
         if self.lost:

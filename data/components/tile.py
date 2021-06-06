@@ -20,13 +20,19 @@ class Tile(pg.sprite.Sprite, Packable):
     def unpack(self, data):
         # print('Tile unpacking data: ', data)
         self.owner = self.board.game.players[data['owner']] if data['owner'] else None
-        if data['building']:
+        # if there's a building and there should be one, destroy it
+        if self.building and not data['building']:
+            self.building.destroy()
+        # if there's a building of the same type. Update the building data
+        elif self.building and self.building.name == data['building']['name']:
+            self.building.unpack(data['building'])
+        # if there is a building of a different type
+        elif data['building']:
+            if self.building:
+                self.building.destroy()
             building_name = data['building']['name']
             self.board.build_on_tile(self, building_name)
             self.building.unpack(data['building'])
-        else:
-            if self.building:
-                self.building.destroy()
 
     def __init__(self, pos, index, board, sprite_size):
         pg.sprite.Sprite.__init__(self)

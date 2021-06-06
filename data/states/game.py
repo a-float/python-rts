@@ -3,24 +3,22 @@ import sys
 import math
 from dataclasses import dataclass
 from typing import Any, Optional, Dict
-from data.networking.packable import Packable
 import pygame as pg
 from data import state_machine, config, colors
 from data.components import board, UI
 from data.components.player import Player
 from data.dataclasses import GameData
-from data.networking.client import Client
-from data.networking.server import Server
+from data.networking import Client, Server, Receiver, Packable
 
 
 # TODO add receiver class? to online lobby as well
-class Game(state_machine.State, Packable):
+class Game(state_machine.State, Packable, Receiver):
     """Core state for the actual gameplay."""
 
     def pack(self):
         return {
             'board': self.board.pack(),
-            'players': [player.pack() for player in self.players.values()]
+            'players': [player.pack() for player in self.players.values()],
         }
 
     def unpack(self, data):
@@ -36,7 +34,8 @@ class Game(state_machine.State, Packable):
         self.UI = None
         self.is_over: bool = False
         self.server: Optional[Server] = None  # if is not None, the game is online, and this Game is the host
-        self.client: Optional[Client] = None  # if is None, the game is played offline
+        self.client: Optional[Client] = None  # if is not None, the game is online, and this Game is a client
+        # self.online: bool = False  # if server and client are None, the game is played offline
 
     def startup(self, now, persistent):
         self.is_over = False
@@ -46,7 +45,7 @@ class Game(state_machine.State, Packable):
         settings = persistent['game_data']
         self.client, self.server = settings.client, settings.server
         if self.server:
-            self.server.set_true_game(self)
+            self.server.set_state_source(self, 0.3)
         if self.client:
             self.client.receiver = self
             for p in self.players.values():
@@ -85,7 +84,7 @@ class Game(state_machine.State, Packable):
         print('Game received message: ', message)
         if message[0] == 'action':  # someone has pressed a key ('kdown', player id, command to execute)
             self.players[message[1]].execute_command(message[2])
-        elif message[0] == 'state':
+        elif message[0] == 'state' and self.server is None:  # the state owner doesnt care about the state message
             self.unpack(message[1])
 
     def update(self, keys, now):

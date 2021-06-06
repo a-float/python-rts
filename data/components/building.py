@@ -4,7 +4,7 @@ from data.components.bullet import *
 from data.networking.packable import Packable
 from data.components.building_stats import *
 from data import config
-from data.components.animation import Animation
+from data.tools import Animation
 
 
 class Building(pg.sprite.Sprite, Packable):

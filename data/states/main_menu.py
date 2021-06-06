@@ -3,8 +3,8 @@ from typing import Any
 
 import pygame as pg
 from data import menu_utils, state_machine, config, colors
-from data.components.board import Board
-from data.states.online_lobby import OnlineLobby, OnlineModeSelect
+from data.states.online_lobby import OnlineLobby
+from data.states.online_mode_select import OnlineModeSelect
 from data.dataclasses import GameData, MapConfig
 from data import config
 

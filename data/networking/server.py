@@ -3,8 +3,9 @@ import select
 import threading
 import sys
 from dataclasses import dataclass
-from typing import List, Optional, Dict
+from typing import List, Optional
 import pickle
+import time
 
 
 @dataclass
@@ -34,16 +35,18 @@ class Server:
         self.server_socket.listen(4)
         print(f"Listening on {self.ip} : {self.port}")
 
-        self.socket_id_dict = {}
+        self.socket_id_dict = {}  # maps sockets to clients ids
         self.host_socket = None
         self.clients: List[Optional[ClientData]] = [None] * 4
         self.read_list = [self.server_socket]
         self.running = True
-        self.current_map_index = 0
-        self.true_game = None
+        self.last_state_update = 0
+        self.state_update_delay = 0.5  # in s
+        self.state_source = None  # packable object whose state is going to be shared among the players
 
-    def set_true_game(self, game):
-        self.true_game = game
+    def set_state_source(self, packable, update_delay=0.5):
+        self.state_source = packable
+        self.state_update_delay = update_delay
 
     def get_client_count(self):
         return len(self.socket_id_dict)
@@ -56,7 +59,7 @@ class Server:
     def close(self):
         self.running = False
 
-    def send_to_all(self, data):
+    def send_to_clients(self, data):
         for s in self.read_list:
             if s != self.server_socket:
                 s.sendall(data)
@@ -65,11 +68,6 @@ class Server:
         self.clients[self.socket_id_dict[sckt]] = None
         print(self.clients)
         del self.socket_id_dict[sckt]
-        self.update_clients()
-
-    def update_clients(self):
-        # print(self.clients)
-        self.send_to_all(pickle.dumps({'players': self.clients}))
 
     def add_client(self, sckt, addr):
         new_id = self._get_available_id()
@@ -78,19 +76,21 @@ class Server:
         # print(self.socket_id_dict)
         self.read_list.append(sckt)
         sckt.sendall(str.encode(str(new_id+1)))
-        self.update_clients()
-        sckt.sendall(pickle.dumps({'set_map': self.current_map_index}))
+        self.send_state()
         if self.host_socket is None:
             self.host_socket = sckt
         print("Connection from", addr)
 
-    def set_map(self, index):
-        self.current_map_index = index
-        self.send_to_all(pickle.dumps({'set_map': index}))
+    def send_state(self):
+        print("SERVER sending state")
+        self.last_state_update = time.time()
+        self.send_to_clients(pickle.dumps(('state', self.state_source.pack())))
 
     @threaded
     def run(self):
         while self.running:
+            if time.time() > self.last_state_update + self.state_update_delay:
+                self.send_state()
             sys.stdout.flush()
             readable, writable, errored = select.select(self.read_list, [], [], 1)
             for s in readable:
@@ -101,20 +101,16 @@ class Server:
                     data = s.recv(1024)
                     if data:
                         comms = data.decode().split(':')
-                        if comms[0] == 'set_name':  # command "set_name:name" - sets the player name
+                        if comms[0] == 'set_name':  # command "set_name:name" - set the player's name
                             self.clients[self.socket_id_dict[s]].name = comms[1]
-                            self.update_clients()
                         elif comms[0] == 'quit':  # command "quit" - player has quit
                             self._remove_client(s)
                             s.close()
                             self.read_list.remove(s)
-                        elif comms[0] == 'action':  # command "kdown:command_name" - player has made a valid action
-                            print('SERVER GOT action message')
+                        elif comms[0] == 'action':  # command "action: command_name"-player has performed an action
                             payload = ('action', self.socket_id_dict[s]+1, comms[1])
-                            self.true_game.handle_message(payload)
-                            # TODO server owner should not send state to himself?
-                            self.send_to_all(pickle.dumps(('state', self.true_game.pack())))
-
+                            self.state_source.handle_message(payload)
+                        self.send_state()  # send state after receiving a message
                     else:
                         s.close()
                         self.read_list.remove(s)

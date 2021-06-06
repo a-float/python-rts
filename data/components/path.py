@@ -1,12 +1,24 @@
 from data.components.building import Barracks
 import pygame as pg
 from data import config
+from data.networking.packable import Packable
 
 
-class Path(pg.sprite.Sprite):
+class Path(pg.sprite.Sprite, Packable):
+    def pack(self):
+        return {
+            'tile_indices': [tile.index for tile in self.tiles],
+            'owner_id': self.owner.id,
+            'path_id': self.path_id
+        }
+
+    def unpack(self, data):
+        self.path_id = data['path_id']
+
     def __init__(self, start_tile, player):
         super().__init__(start_tile.board.path_group)
         self.tiles = []
+        self.path_id = start_tile.index  # no two paths can start at the same tile. Used to unpack units online
         self.owner = player
         self.destroyed = False
         self.color = tuple([int(0.8 * x) for x in self.owner.color])
@@ -56,13 +68,6 @@ class PathBuilder:
             if tile.paths[self.owner.id] is None:
                 return True
         return False
-
-
-        # if tile.owner == self.owner and tile.building is not None and isinstance(tile.building, Barracks):
-        #     return True
-        # if config.CAN_PATHS_CROSS or tile.paths[self.owner.id] is not None:
-        #     return False
-        # return True
 
     def init_path(self):
         tile = self.owner.tile

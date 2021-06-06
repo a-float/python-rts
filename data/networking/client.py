@@ -32,7 +32,6 @@ class Client:
             print('Connected to address ', self.addr)
             player_id = self.socket.recv(2048).decode()
             print(f'received id {player_id}')
-            print('my name is ', self.name)
             self.socket.sendall(str.encode(f'set_name:{self.name}'))
             return player_id
         except Exception as e:

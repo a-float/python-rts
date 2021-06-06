@@ -124,7 +124,20 @@ def dist_sq(pos1, pos2):
 
 
 def pos_to_relative(pos):
+    """
+    eg (200px, 300px) -> (0.2, 0.4) (20% of the width from the left, 40% of the height from the top)
+    :param pos: absolute valued position
+    :return: position relative to the window size
+    """
     return pos[0] / config.SCREEN_SIZE[0], pos[1] / config.SCREEN_SIZE[1]
+
+
+def pos_to_absolute(pos):
+    """
+    :param pos: position relative to the window size
+    :return: absolute valued position
+    """
+    return pos[0]*config.WIDTH, pos[1]*config.HEIGHT
 
 
 def get_health_surface(health_ratio, width, height):
@@ -133,3 +146,19 @@ def get_health_surface(health_ratio, width, height):
     col = [250 * (1 - health_ratio), health_ratio * 250, 0]
     health_img.fill(col)
     return health_img
+
+class Animation:
+    def __init__(self, frames, fps):
+        self.frames = frames
+        self.fps = fps
+        self.frame = 0
+        self.timer = None
+
+    def get_next_frame(self, now):
+
+        if not self.timer:
+            self.timer = now
+        if now - self.timer > 1000.0 / self.fps:
+            self.frame = (self.frame + 1) % len(self.frames)
+            self.timer = now
+        return self.frames[self.frame]
