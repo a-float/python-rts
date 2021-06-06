@@ -146,7 +146,7 @@ class Tower(Building):
 
     def passive(self):
         for soldier in self.tile.board.unit_group.sprites():
-            if dist_sq(pos_to_relative(soldier.rect.center), pos_to_relative(self.rect.center)) < self.range:
+            if soldier.owner != self.owner and dist_sq(pos_to_relative(soldier.rect.center), pos_to_relative(self.rect.center)) < self.range:
                 self.tile.board.add_bullet(Bullet(self.bullet_image, self.rect.center, soldier, self.damage))
                 self.delay = 1/self.fire_rate
                 print('Paf paf i shoot')
