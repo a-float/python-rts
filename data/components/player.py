@@ -21,6 +21,7 @@ class Player:
         self.marker = PlayerMarker(self.color, tile.rect.center)
         self.board = board
         self.controls: Dict[str, str] = config.CONTROLS[player_no]
+        self.controller: Dict[str, str] = config.PLAYER_CONTROLLERS[player_no]
         self.path_builder = PathBuilder(self)
         self.upgrade_mode: bool = False
         self.build_mode = False
@@ -28,12 +29,16 @@ class Player:
         self.menu_rect = None
 
     def handle_event(self, event):
-        if event.type == pg.KEYDOWN:
-            if self.controls is None:
-                # TODO controls for player no 3 and 4
-                return
-            if event.key in self.controls.keys():
-                command = self.controls[event.key]
+        if event.type == pg.KEYDOWN or event.type == pg.JOYBUTTONDOWN:
+
+            event_key = None
+            if event.type == pg.KEYDOWN:
+                event_key = event.key
+            if event.type == pg.JOYBUTTONDOWN and event.joy == self.controller:
+                event_key = event.button
+
+            if event_key in self.controls.keys():
+                command = self.controls[event_key]
 
                 if self.upgrade_mode:
                     self.upgrade_building(command)

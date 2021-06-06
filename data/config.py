@@ -3,6 +3,9 @@ import pygame as pg
 from . import colors, tools
 
 pg.init()  # its here to start loading everything up asap
+pg.joystick.init()
+joysticks = [pg.joystick.Joystick(i) for i in range(pg.joystick.get_count())]
+# work if controller is connected via BT (otherwise 2 controllers are visible) dunno why :<, but it can be drivers issue
 
 WIDTH, HEIGHT = (1280//2, 720//2)
 SCREEN_SIZE = (WIDTH, HEIGHT)
@@ -49,12 +52,29 @@ DEFAULT_CONTROLS_2 = {pg.K_s: "down",
                       pg.K_q: "upgrade"
                       }
 
+DEFAULT_CONTROLS_CONTROLLER = {12: "down",   # d-pad down
+                               11: "up",     # d-pad up
+                               13: "left",   # d-pad left
+                               14: "right",  # d-pad right
+                               0: "action",  # cross/a
+                               2: "upgrade"  # square/x
+                               }
+
+
 CONTROLS = {
     PLAYER_1: DEFAULT_CONTROLS_1,
     PLAYER_2: DEFAULT_CONTROLS_2,
-    PLAYER_3: None,
-    PLAYER_4: None
+    PLAYER_3: DEFAULT_CONTROLS_CONTROLLER,
+    PLAYER_4: DEFAULT_CONTROLS_CONTROLLER
 }
+
+PLAYER_CONTROLLERS = {
+    PLAYER_1: None,
+    PLAYER_2: None,
+    PLAYER_3: 0,
+    PLAYER_4: 1
+}
+
 INCOME = {
     'castle': 5,
     'market': 5
@@ -109,6 +129,8 @@ PLAYER_COLORS = {
     PLAYER_3: colors.GREEN,
     PLAYER_4: colors.YELLOW,
 }
+
+
 
 
 def load_gfx_from_dirs(dirs):
