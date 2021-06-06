@@ -3,10 +3,6 @@ import pygame as pg
 from . import colors, tools
 
 pg.init()  # its here to start loading everything up asap
-pg.joystick.init()
-joysticks = [pg.joystick.Joystick(i) for i in range(pg.joystick.get_count())]
-# work if controller is connected via BT (otherwise 2 controllers are visible) dunno why :<, but it can be drivers issue
-
 
 WIDTH, HEIGHT = (int(1280 / 1.4), int(720 / 1.4))
 SCREEN_SIZE = (WIDTH, HEIGHT)
@@ -35,6 +31,10 @@ _screen.fill(colors.BLUE)
 _render = FONT_BIG.render("LOADING...", True, pg.Color("white"))
 _screen.blit(_render, _render.get_rect(center=SCREEN_RECT.center))
 pg.display.update()
+
+pg.joystick.init()
+joysticks = [pg.joystick.Joystick(i) for i in range(pg.joystick.get_count())]
+# work if controller is connected via BT (otherwise 2 controllers are visible) dunno why :<, but it can be drivers issue
 
 MAX_PLAYERS = 4
 CAN_PATHS_CROSS = True
