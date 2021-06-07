@@ -55,7 +55,6 @@ class Board(Packable):
             for x, char in enumerate(row):
                 if char != '.':
                     new_tile = Tile((offset_x+x * tile_size, offset_y+y*tile_size), len(self.tiles), self, tile_size-4)  # TODO this magic -4
-                    # TODO check if each of the numbers appears once
                     if char in list([str(config.PLAYER_1 + i) for i in range(self.settings.player_no)]):
                         new_tile.owner = self.create_player(players, int(char), new_tile)
                         castle_tiles.append(new_tile)  # castles are built after the neighbours are set
@@ -76,8 +75,7 @@ class Board(Packable):
     def create_player(self, players, player_no, start_tile):
         """ Creates a new player, puts it in the players list and returns the newly created element """
         if player_no in players.keys():
-            # TODO should it be a RuntimeError?
-            raise RuntimeError(f"Can't create player no {player_no} as it already exists.")
+            raise ValueError(f"Invalid map layout. Can't create player no {player_no} as it already exists.")
         players[player_no] = Player(player_no, start_tile, self)
         return players[player_no]
 

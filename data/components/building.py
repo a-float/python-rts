@@ -85,8 +85,7 @@ class Building(pg.sprite.Sprite, Packable):
 
     def destroy(self):
         """ Called when the building is destroyed"""
-        self.tile.building = None
-        self.kill()
+        self.tile.demolish()
 
     def get_attacked(self, damage):
         """ Called when a soldier attacks the building"""
@@ -128,7 +127,7 @@ class Castle(Building):
     def destroy(self):
         self.owner.lose()
         super().destroy()
-        # no need to decrease the income as player is out
+        # no need to decrease the income as player is out anyway
 
 
 class Tower(Building):

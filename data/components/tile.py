@@ -38,7 +38,6 @@ class Tile(pg.sprite.Sprite, Packable):
         self.neighbours = {}  # a dict passed by the map
         self.owner = None  # Player object
         self.building = None
-        # TODO paths are used only for path crossing prevention is it ok?
         self.paths = {  # paths of each player that lie on this tile. Used when CAN_PATHS_CROSS == False
             1: None,
             2: None,
@@ -57,7 +56,7 @@ class Tile(pg.sprite.Sprite, Packable):
         self.neighbours = neighbours
 
     def build(self, building_name):
-        """gets the building object from a dict? from config? from building.py?"""
+        """sets the tile building and updates neighbours' ownerships"""
         self.building = building.BUILDINGS[building_name](self)
         self.increase_ownership(self.owner)
         self.update_owner()
@@ -69,12 +68,14 @@ class Tile(pg.sprite.Sprite, Packable):
         return self.building
 
     def demolish(self):
-        self.board.building_group.remove(self.building)
+        self.building.kill()
         self.building = None
         for n in self.neighbours.values():
             if n is not None:
                 n.decrease_ownership(self.owner)
                 n.update_owner()
+        self.decrease_ownership(self.owner)
+        self.update_owner()
 
     def increase_ownership(self, player):
         self.ownership[player] = self.ownership.get(player, 0) + 1
