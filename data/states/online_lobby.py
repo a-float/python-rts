@@ -34,7 +34,7 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
         :param persistent: dict with keys:
             'is_host' -> should the server be created
             'ip' -> ignored is 'is_host'  the server is not created and the client connects to the specified ip
-            'name' -> client's name # TODO
+            'player_name' -> client's name
         """
         print(persistent)
         if persistent['is_host']:

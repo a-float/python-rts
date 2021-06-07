@@ -54,7 +54,7 @@ class Board(Packable):
                 raise ValueError(f'Invalid board string. Faulty row: {y}. "{row}"')
             for x, char in enumerate(row):
                 if char != '.':
-                    new_tile = Tile((offset_x+x * tile_size, offset_y+y*tile_size), len(self.tiles), self, tile_size-4)  # TODO this magic -4
+                    new_tile = Tile((offset_x+x * tile_size, offset_y+y*tile_size), len(self.tiles), self, tile_size-4)
                     if char in list([str(config.PLAYER_1 + i) for i in range(self.settings.player_no)]):
                         new_tile.owner = self.create_player(players, int(char), new_tile)
                         castle_tiles.append(new_tile)  # castles are built after the neighbours are set
