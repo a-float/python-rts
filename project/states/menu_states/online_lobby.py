@@ -36,7 +36,7 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
             'ip' -> ignored is 'is_host'  the server is not created and the client connects to the specified ip
             'player_name' -> client's name
         """
-        print(persistent)
+        print(f'Received persistent: {persistent}')
         if persistent['is_host']:
             self.client = Client(self, 'scout', is_scout=True)
             if self.client.player_id is not None:
@@ -69,6 +69,7 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
                 self.client.close()
                 self.client = None
             if self.server:
+                print('closing the server')
                 self.server.close()  # need to close the server and the client before closing the program
                 self.server = None
         return super().cleanup()

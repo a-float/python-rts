@@ -59,7 +59,7 @@ def threaded_client(conn, is_running, receiver):
                 try:
                     receiver().handle_message(data)
                 except IndexError:
-                    print("Invalid project received. Client quits")
+                    print("Invalid data received. Client quits")
                     break
         except socket.error as e:
             print("Something went wrong:", e)

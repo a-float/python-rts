@@ -17,7 +17,6 @@ class Tile(pg.sprite.Sprite, Packable):
         }
 
     def unpack(self, data):
-        # print('Tile unpacking project: ', project)
         self.owner = self.board.game.players[data['owner']] if data['owner'] else None
         # if there's a building and there should be one, destroy it
         if self.building and not data['building']:

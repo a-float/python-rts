@@ -3,10 +3,9 @@ import typing
 from . import config, state_machine, colors
 from project.components import Board
 from .dataclasses import MapConfig
-from abc import ABC, abstractmethod
 
 
-class BasicMenu(state_machine.State, ABC):
+class BasicMenu(state_machine.State):
     """Base class for basic uni-directional menus."""
 
     def __init__(self, option_length):
@@ -42,24 +41,32 @@ class BasicMenu(state_machine.State, ABC):
             self.dirty = False
             self._draw(screen, interpolate)
 
-    @abstractmethod
     def _draw(self, screen, interpolate):
-        """Called when the menu is dirty"""
+        """
+        Called when the menu is dirty
+        To be overridden
+        """
         pass
 
-    @abstractmethod
     def update(self, keys, now):
-        """Called by the state manager"""
+        """
+        Called by the state manager
+        To be overridden
+        """
         pass
 
-    @abstractmethod
     def pressed_enter(self):
-        """Called when user presses the enter key"""
+        """
+        Called when user presses the enter key
+        To be overridden
+        """
         pass
 
-    @abstractmethod
     def pressed_exit(self):
-        """Called when user presses the escape key """
+        """
+        Called when user presses the escape key
+        To be overridden
+        """
         pass
 
 

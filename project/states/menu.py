@@ -37,7 +37,6 @@ class Menu(state_machine.State):
             self.done = True
             # taking the persist out of this state machine so it can be passed to the GAME state
             self.persist = self.state_machine.state.persist
-            # print('new MENU persist ', self.persist)
 
     def draw(self, surface, interpolate):
         self.state_machine.draw(surface, interpolate)

@@ -194,7 +194,7 @@ class Barracks(Building):
         if not self.is_built:
             return
         self.health -= damage
-        print("Get attacked DMG: ", damage)
+        # print("Get attacked DMG: ", damage)
         if self.health <= 0:
             self.destroy()
 

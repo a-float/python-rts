@@ -73,7 +73,6 @@ class PathBuilder:
 
     def init_path(self):
         tile = self.owner.tile
-        print(type(tile.building))
         if tile.owner == self.owner and isinstance(tile.building, Barracks):
             if tile.building.path is not None:
                 tile.building.path.destroy()
