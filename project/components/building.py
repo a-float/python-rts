@@ -1,11 +1,11 @@
 import pygame as pg
-from data.components.soldier import Soldier, dist_sq
-from data.tools import pos_to_relative, get_health_surface
-from data.networking import Packable
-from data.components import Bullet
-from data.building_stats import *
-from data import config
-from data.tools import Animation
+from project.components.soldier import Soldier, dist_sq
+from project.tools import pos_to_relative, get_health_surface
+from project.networking import Packable
+from project.components import Bullet
+from project.building_stats import *
+from project import config
+from project.tools import Animation
 
 
 class Building(pg.sprite.Sprite, Packable):

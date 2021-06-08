@@ -9,7 +9,7 @@ and in the config module.
 import sys
 import pygame as pg
 
-from data.main import main
+from project.main import main
 
 if __name__ == '__main__':
     main()

@@ -160,7 +160,7 @@ def load_gfx_from_dirs(dirs):
     """
     Calls the tools.load_all_graphics() function for all directories passed.
     """
-    base_path = os.path.join("data", "resources", "graphics")
+    base_path = os.path.join("project", "resources", "graphics")
     GFX = {}
     for directory in dirs:
         path = os.path.join(base_path, directory)

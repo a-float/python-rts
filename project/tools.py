@@ -1,7 +1,7 @@
 import os
 import pygame as pg
 import threading
-from data import state_machine, config
+from project import state_machine, config
 
 TIME_PER_UPDATE = 16.0  # ~= 1000ms/60f = 62.5fps
 

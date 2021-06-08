@@ -10,7 +10,7 @@ import time
 
 @dataclass
 class ClientData:
-    """Class for storing basic client data."""
+    """Class for storing basic client project."""
     id: int
     name: str = 'Joe'
     address: str = '???'

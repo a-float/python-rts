@@ -1,11 +1,12 @@
 import pygame as pg
 import typing
 from . import config, state_machine, colors
-from data.components import Board
+from project.components import Board
 from .dataclasses import MapConfig
+from abc import ABC, abstractmethod
 
 
-class BasicMenu(state_machine.State):
+class BasicMenu(state_machine.State, ABC):
     """Base class for basic uni-directional menus."""
 
     def __init__(self, option_length):
@@ -36,20 +37,29 @@ class BasicMenu(state_machine.State):
         self.dirty = True
 
     def draw(self, screen, interpolate):
+        """Checks if the menu is dirty, if so, redraws it"""
         if self.dirty:
             self.dirty = False
             self._draw(screen, interpolate)
 
+    @abstractmethod
     def _draw(self, screen, interpolate):
+        """Called when the menu is dirty"""
         pass
 
+    @abstractmethod
     def update(self, keys, now):
+        """Called by the state manager"""
         pass
 
+    @abstractmethod
     def pressed_enter(self):
+        """Called when user presses the enter key"""
         pass
 
+    @abstractmethod
     def pressed_exit(self):
+        """Called when user presses the escape key """
         pass
 
 

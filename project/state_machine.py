@@ -1,4 +1,4 @@
-class StateMachine(object):
+class StateMachine:
     """
     A generic state machine.
     """
@@ -53,12 +53,12 @@ class StateMachine(object):
         self.state.get_event(event)
 
 
-class State(object):
+class State:
     """
     This is a prototype class for States. All states should inherit from it.
     No direct instances of this class should be created. get_event and update
     must be overloaded in the child class. The startup and cleanup methods
-    need to be overloaded when there is data that must persist between States.
+    need to be overloaded when there is project that must persist between States.
     """
     def __init__(self):
         self.start_time = 0.0

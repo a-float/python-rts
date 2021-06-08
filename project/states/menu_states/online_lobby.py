@@ -3,10 +3,10 @@ from typing import Optional, Dict, List
 import time
 
 import pygame as pg
-from data import menu_utils, config, colors
-from data.dataclasses import GameData
-from data.menu_utils import BasicMenu, BoardPreview
-from data.networking import Server, ClientData, Client, Receiver, Packable
+from project import menu_utils, config, colors
+from project.dataclasses import GameData
+from project.menu_utils import BasicMenu, BoardPreview
+from project.networking import Server, ClientData, Client, Receiver, Packable
 
 
 class OnlineLobby(BasicMenu, Packable, Receiver):
@@ -161,7 +161,7 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
 
     def start_game(self, map_config):
         self.persist.update({
-            'game_data': GameData(server=self.server, client=self.client, map=map_config)
+            'game_data': GameData(server=self.server, client=self.client, map=map_config),
         })
         self.preserve_network = True
         self.quit = True  # leave the menu state manager and start the game

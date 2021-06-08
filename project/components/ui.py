@@ -1,8 +1,8 @@
 import pygame as pg
 from typing import Dict, Any
-import data.config as config
-from data.components import Player
-from data.building_stats import BUILDING_DATA as DATA
+import project.config as config
+from project.components import Player
+from project.building_stats import BUILDING_DATA as DATA
 
 
 class UI(pg.sprite.Sprite):

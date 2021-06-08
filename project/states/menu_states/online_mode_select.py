@@ -3,8 +3,8 @@ import socket
 
 import names
 import pygame as pg
-from data import menu_utils, config, colors
-from data.menu_utils import BasicMenu
+from project import menu_utils, config, colors
+from project.menu_utils import BasicMenu
 
 
 class OnlineModeSelect(BasicMenu):

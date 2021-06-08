@@ -1,10 +1,10 @@
 import math
 import pygame as pg
-from data import config
-from data.tools import dist_sq, get_health_surface, pos_to_relative, pos_to_absolute
-from data.building_stats import SOLDIER_STATS, SOLDIER_ANIM_FPS
-from data.tools import Animation
-from data.networking import Packable
+from project import config
+from project.tools import dist_sq, get_health_surface, pos_to_relative, pos_to_absolute
+from project.building_stats import SOLDIER_STATS, SOLDIER_ANIM_FPS
+from project.tools import Animation
+from project.networking import Packable
 
 
 class Soldier(pg.sprite.Sprite, Packable):

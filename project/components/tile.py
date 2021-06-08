@@ -1,7 +1,7 @@
 import pygame as pg
-from data.networking import Packable
-from data import colors
-from data.components import building
+from project.networking import Packable
+from project import colors
+from project.components import building
 
 
 class Tile(pg.sprite.Sprite, Packable):
@@ -17,12 +17,12 @@ class Tile(pg.sprite.Sprite, Packable):
         }
 
     def unpack(self, data):
-        # print('Tile unpacking data: ', data)
+        # print('Tile unpacking project: ', project)
         self.owner = self.board.game.players[data['owner']] if data['owner'] else None
         # if there's a building and there should be one, destroy it
         if self.building and not data['building']:
             self.building.destroy()
-        # if there's a building of the same type. Update the building data
+        # if there's a building of the same type. Update the building project
         elif self.building and self.building.name == data['building']['name']:
             self.building.unpack(data['building'])
         # if there is a building of a different type

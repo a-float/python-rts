@@ -1,10 +1,10 @@
 from typing import Optional, Dict
 import pygame as pg
 
-from data.dataclasses import GameData
-from data import state_machine, colors
-from data.components import board, UI, Player
-from data.networking import Client, Server, Receiver, Packable
+from project.dataclasses import GameData
+from project import state_machine, colors
+from project.components import board, UI, Player
+from project.networking import Client, Server, Receiver, Packable
 
 
 class Game(state_machine.State, Packable, Receiver):

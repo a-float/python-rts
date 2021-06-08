@@ -1,11 +1,11 @@
 from typing import Optional, Tuple, Dict
 
 import pygame as pg
-from data import config
+from project import config
 from collections import OrderedDict
-from data.networking import Packable
-from data.dataclasses import MapConfig
-from data.components import Tile, Player, Path, Soldier
+from project.networking import Packable
+from project.dataclasses import MapConfig
+from project.components import Tile, Player, Path, Soldier
 
 
 class Board(Packable):

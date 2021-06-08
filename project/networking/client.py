@@ -45,7 +45,7 @@ class Client:
             else:
                 raise ValueError("Client can only send strings")
         except socket.error as e:
-            print("Could not send the data: " + str(e))
+            print("Could not send the project: " + str(e))
 
 
 def threaded_client(conn, is_running, receiver):
@@ -59,7 +59,7 @@ def threaded_client(conn, is_running, receiver):
                 try:
                     receiver().handle_message(data)
                 except IndexError:
-                    print("Invalid data received. Client quits")
+                    print("Invalid project received. Client quits")
                     break
         except socket.error as e:
             print("Something went wrong:", e)

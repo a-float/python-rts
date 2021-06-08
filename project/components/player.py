@@ -1,11 +1,11 @@
 import pygame as pg
 from typing import Dict, List, Any
-from data import config
-from data.networking import Packable
+from project import config
+from project.networking import Packable
 
-from data.components import Tile, PathBuilder
-from data.building_stats import BUILDING_DATA
-from data.components.building import Barracks, Tower, Market
+from project.components import Tile, PathBuilder
+from project.building_stats import BUILDING_DATA
+from project.components.building import Barracks, Tower, Market
 
 
 class Player(Packable):
