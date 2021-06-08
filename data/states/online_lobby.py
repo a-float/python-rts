@@ -49,10 +49,12 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
 
             self.is_host = True
             self.server = Server(self)
-            self.server.set_state_source(self, update_delay=0.5)
+            self.server.set_state_source(self, update_delay=0.2)
             self.server.run()
             self.client = Client(self, persistent['player_name'])
+            self.persist.update({'notification': None})  # clear the notification - all is good
         else:
+            self.is_host = False
             self.client = Client(self, persistent['player_name'], persistent['ip'])
             if not self.client.running:
                 self.next = 'ONLINE_MODE_SELECT'
@@ -65,8 +67,10 @@ class OnlineLobby(BasicMenu, Packable, Receiver):
             if self.client and self.client.running:
                 print('closing the client')
                 self.client.close()
+                self.client = None
             if self.server:
                 self.server.close()  # need to close the server and the client before closing the program
+                self.server = None
         return super().cleanup()
 
     def render_players(self, clients: List[Optional[ClientData]]):

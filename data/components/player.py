@@ -90,17 +90,16 @@ class Player(Packable):
                 self.move(command)
 
     def parse_build_command(self, command):
+        building_name = None
         if command == 'up':
             building_name = 'barracks'
         elif command == 'left':
             building_name = 'market'
         elif command == 'right':
             building_name = 'tower'
-        elif command == 'down':
+        elif command == 'down' or building_name is None:
             self.in_build_mode = False
             return
-        else:
-            raise ValueError('Invalid build command: ', command)
 
         if self.build(building_name):
             self.in_build_mode = False
@@ -152,15 +151,14 @@ class Player(Packable):
 
     def upgrade_building(self, command):
         upgrade_types = self.tile.building.get_upgrade_types()
+        upgrade_name = None
         if command == 'left':
             upgrade_name = upgrade_types[0]
         elif command == 'right':
             upgrade_name = upgrade_types[1]
-        elif command == 'down':
+        elif command == 'down' or upgrade_name is None:
             self.in_upgrade_mode = False
             return
-        else:
-            raise ValueError('Invalid upgrade command: ', command)
 
         upgrade_cost = BUILDING_DATA[upgrade_name]['cost']
         if self.gold >= upgrade_cost:

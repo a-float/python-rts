@@ -55,7 +55,7 @@ class Game(state_machine.State, Packable, Receiver):
             for p in self.players.values():
                 comm = p.get_command_from_event(event)
                 # send what you want to do to the server, and execute it when the servers responds
-                if comm is not None:
+                if comm is not None and not self.is_over:
                     if self.client :
                         self.client.send(f'action:{comm}')
                     else:  # playing offline, just execute the command
@@ -89,7 +89,10 @@ class Game(state_machine.State, Packable, Receiver):
         return None
 
     def _is_over(self):
-        """Returns True if at least two players haven't lost yet"""
+        """
+        Returns True if at least two players haven't lost yet
+        Used to update self.is_over in the update method
+        """
         still_playing = 0
         for player in self.players.values():
             if not player.lost:

@@ -5,16 +5,6 @@ from data.networking import Packable
 
 
 class Path(pg.sprite.Sprite, Packable):
-    def pack(self):
-        return {
-            'tile_indices': [tile.index for tile in self.tiles],
-            'owner_id': self.owner.id,
-            'path_id': self.path_id
-        }
-
-    def unpack(self, data):
-        self.path_id = data['path_id']
-
     def __init__(self, start_tile, player):
         super().__init__(start_tile.board.path_group)
         self.tiles = []
@@ -50,6 +40,16 @@ class Path(pg.sprite.Sprite, Packable):
             src = self.tiles[i]
             to = self.tiles[i+1]
             pg.draw.line(self.image, self.color, src.rect.center, to.rect.center, width=5)
+
+    def pack(self):
+        return {
+            'tile_indices': [tile.index for tile in self.tiles],
+            'owner_id': self.owner.id,
+            'path_id': self.path_id
+        }
+
+    def unpack(self, data):
+        self.path_id = data['path_id']
 
 
 class PathBuilder:

@@ -45,7 +45,7 @@ class Client:
             else:
                 raise ValueError("Client can only send strings")
         except socket.error as e:
-            print(e)
+            print("Could not send the data: " + str(e))
 
 
 def threaded_client(conn, is_running, receiver):
@@ -55,8 +55,12 @@ def threaded_client(conn, is_running, receiver):
             if not data:
                 break
             else:
-                data = (pickle.loads(data))
-                receiver().handle_message(data)
+                data = pickle.loads(data)
+                try:
+                    receiver().handle_message(data)
+                except IndexError:
+                    print("Invalid data received. Client quits")
+                    break
         except socket.error as e:
             print("Something went wrong:", e)
             break

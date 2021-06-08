@@ -145,7 +145,7 @@ class Board(Packable):
             for i in range(1, len(path_data['tile_indices'])):  # skips the first tile
                 path.add_tile(self.get_tile_by_index(path_data['tile_indices'][i]))
             path.unpack(path_data)
-            path.update_image()
+            print("UNPACKING ", path.rect)
 
         # soldiers
         self.unit_group.empty()

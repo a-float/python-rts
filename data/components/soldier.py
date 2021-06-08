@@ -77,19 +77,22 @@ class Soldier(pg.sprite.Sprite, Packable):
         if self.path.destroyed:  # tha path under the soldier has disappeared
             self.is_dead = True
             return
-        if dist_sq(self.rect.center, self.path.tiles[self.path_tile_index].rect.center) >= 0.001:
-            # print(self.move_vector, self.rect.center)
-            self.rect.move_ip(*self.move_vector)
-        else:  # soldier has arrived at the target tile
-            self.try_to_attack()
+        try:  # cause of the try is the line below
+            if dist_sq(self.rect.center, self.path.tiles[self.path_tile_index].rect.center) >= 0.001:
+                # print(self.move_vector, self.rect.center)
+                self.rect.move_ip(*self.move_vector)
+            else:  # soldier has arrived at the target tile
+                self.try_to_attack()
 
-            # try to go to the next tile
-            if self.path_tile_index == len(self.path.tiles)-1:  # soldier disappears upon reaching the end of the path
-                self.kill()
-            else:
-                self.path_tile_index += 1
-                self.tile = self.path.tiles[self.path_tile_index]
-                self.move_vector = self.get_move_vector()
+                # try to go to the next tile
+                if self.path_tile_index == len(self.path.tiles)-1:  # soldier disappears upon reaching the end of the path
+                    self.kill()
+                else:
+                    self.path_tile_index += 1
+                    self.tile = self.path.tiles[self.path_tile_index]
+                    self.move_vector = self.get_move_vector()
+        except IndexError:  # may happen online
+            self.die()
 
     def get_attacked(self, damage):
         self.health -= damage
@@ -121,6 +124,7 @@ class Soldier(pg.sprite.Sprite, Packable):
         return {
             'name': self.name,
             'pos': pos_to_relative(self.rect.center),
+            'hp': self.health,
             'curr_path_index': self.path_tile_index,
             'path_id': self.path.path_id,
             'move_vector': self.move_vector,
@@ -132,3 +136,4 @@ class Soldier(pg.sprite.Sprite, Packable):
         self.rect.center = pos_to_absolute(data['pos'])
         self.move_vector = data['move_vector']
         self.flipped = data['flipped']
+        self.health = data['hp']

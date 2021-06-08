@@ -113,4 +113,6 @@ class Server:
                     else:
                         s.close()
                         self.read_list.remove(s)
+
+        self.server_socket.close()
         print('The server has stopped')
