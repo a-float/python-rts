@@ -10,8 +10,8 @@ BUILDING_DATA = {
     'shields_barracks': {'health': 40, 'cost': 10},
 
     'market': {'health': 40, 'cost': 10, 'income': 3, 'frequency': 1},  # average
-    'mine': {'health': 40, 'cost': 10, 'income': 50, 'frequency': 0.1},  # slow but big
-    'bank': {'health': 40, 'cost': 10, 'income': 2, 'frequency': 0.6},  # fast but tiny
+    'mine': {'health': 40, 'cost': 10, 'income': 35, 'frequency': 5},   # slow but big
+    'bank': {'health': 40, 'cost': 10, 'income': 3, 'frequency': 0.7},  # fast but smallp
 }
 
 BUILDING_SPEED = 1  # how fast buildings are being build (depends on building's hp as well)

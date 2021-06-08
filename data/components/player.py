@@ -107,6 +107,7 @@ class Player(Packable):
 
     def add_gold(self, amount):
         self.gold += amount
+        self.gold = min(self.gold, config.MAX_GOLD)
 
     def change_income(self, income_diff):
         self.income += income_diff

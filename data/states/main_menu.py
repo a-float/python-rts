@@ -58,8 +58,8 @@ class MainMenu(menu_utils.BasicMenu):
         self.items = menu_utils.make_options(config.FONT_BIG, self.ITEMS, start_y, 65)
         self.help_index = -1  # if equal to -1 show no help
         self.help_images = [
-            pg.transform.smoothscale(config.gfx['utils']['main_help1'], config.SCREEN_RECT.size),
-            pg.transform.smoothscale(config.gfx['utils']['main_help2'], config.SCREEN_RECT.size)
+                pg.transform.smoothscale(config.gfx['utils'][image_name], config.SCREEN_RECT.size) for
+                image_name in ['main_help1', 'main_help2', 'main_help3']
             ]
 
     def startup(self, now, persistent):

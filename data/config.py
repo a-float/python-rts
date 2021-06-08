@@ -38,6 +38,7 @@ joysticks = [pg.joystick.Joystick(i) for i in range(pg.joystick.get_count())]
 
 MAX_PLAYERS = 4
 CAN_PATHS_CROSS = True
+MAX_GOLD = 9999
 
 PLAYER_1 = 1
 PLAYER_2 = 2

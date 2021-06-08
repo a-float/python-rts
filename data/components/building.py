@@ -17,6 +17,8 @@ class Building(pg.sprite.Sprite, Packable):
         self.cost = 0
         self.is_built = False
         self.owner = tile.owner
+        if not self.owner:
+            raise ValueError('Building with no owner created: ', self.name)
         self.last_passive_time = 0  # when was the last time the passive was executed
         self.delay = 1  # time between adjacent passive() calls in seconds
         self.tile = tile
@@ -70,8 +72,10 @@ class Building(pg.sprite.Sprite, Packable):
     def upgrade(self, upgrade_name):
         """
         Replaces the tile's building to the new building of the specified name.
+        Doesn't destroy nor actually build the new building
+        Tile ownership is not affected
         """
-        self.destroy()
+        self.kill()
         new_building = BUILDINGS[upgrade_name](self.tile)
         new_building.health = 0
         new_building.tile = self.tile
