@@ -6,16 +6,16 @@ from data.networking import Packable
 
 class Path(pg.sprite.Sprite, Packable):
     def __init__(self, start_tile, player):
-        super().__init__(start_tile.board.path_group)
-        self.tiles = []
-        self.path_id = start_tile.index  # no two paths can start at the same tile. Used to unpack units online
-        self.owner = player
-        self.destroyed = False
-        self.color = tuple([int(0.8 * x) for x in self.owner.color])
         self.image = pg.Surface(config.SCREEN_SIZE)
         self.image.set_colorkey(config.COLORKEY)
         self.image.fill(config.COLORKEY)
         self.rect = self.image.get_rect()
+        super().__init__(start_tile.board.path_group)
+        self.tiles = []
+        self.path_id = start_tile.index  # no two paths can start at the same tile. Used to unpack units online
+        self.owner = player
+        self.is_destroyed = False
+        self.color = tuple([int(0.8 * x) for x in self.owner.color])
         self.add_tile(start_tile)
 
     def add_tile(self, tile):
@@ -29,9 +29,11 @@ class Path(pg.sprite.Sprite, Packable):
         self.update_image()
 
     def destroy(self):
-        self.destroyed = True
+        self.is_destroyed = True
         for tile in self.tiles:
             tile.paths[self.owner.id] = None
+            if self.tiles[0].building:
+                self.tiles[0].building.set_path(None)
         self.kill()
 
     def update_image(self):
@@ -73,9 +75,9 @@ class PathBuilder:
         tile = self.owner.tile
         print(type(tile.building))
         if tile.owner == self.owner and isinstance(tile.building, Barracks):
-            if tile.paths[self.owner.id] is not None:
-                tile.paths[self.owner.id].destroy()
-                tile.building.can_release = False
+            if tile.building.path is not None:
+                tile.building.path.destroy()
+                tile.building.set_path(None)
             print("Started Building a Path")
             self.path = Path(tile, self.owner)  # has to be a new one
             tile.paths[self.owner.id] = self.path
@@ -87,7 +89,7 @@ class PathBuilder:
     def undo_path(self):
         self.path.pop_tile()
         self.prev_directions.pop()
-        print(f"Backtracking building of the path")
+        # print(f"Backtracking building of the path")
 
     def handle_command(self, command):
         if self.path.tiles[0].building is None:  # the barracks were destroyed while building the path
@@ -117,5 +119,5 @@ class PathBuilder:
             self.cancel_path()
         else:
             self.is_active = False
-            self.path.tiles[0].building.can_release = True
+            self.path.tiles[0].building.set_path(self.path)
         print("Path Building Finished")

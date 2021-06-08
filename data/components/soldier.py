@@ -74,7 +74,7 @@ class Soldier(pg.sprite.Sprite, Packable):
         if self.flipped:
             self.image = pg.transform.flip(self.image, True, False)
 
-        if self.path.destroyed:  # tha path under the soldier has disappeared
+        if self.path.is_destroyed:  # tha path under the soldier has disappeared
             self.is_dead = True
             return
         try:  # cause of the try is the line below

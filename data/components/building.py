@@ -165,12 +165,14 @@ class MagicTower(Tower):
 class Barracks(Building):
     def __init__(self, tile, building_name='barracks'):
         super().__init__(tile, building_name)
+        self.path = None
         self.tile = tile
-        self.path_sprite = None
-        self.can_release = False
         self.soldier_queue = []
         self.delay = 2
         self.soldier_name = self.name.split('_')[0]
+
+    def set_path(self, path):
+        self.path = path
 
     def try_to_train_soldiers(self):
         if len(self.soldier_queue) < 3:
@@ -178,9 +180,9 @@ class Barracks(Building):
             self.soldier_queue.append(soldier)
 
     def try_to_release_soldier(self):
-        if self.can_release and len(self.soldier_queue) > 0:
+        if self.path and not self.path.is_destroyed and len(self.soldier_queue) > 0:
             soldier = self.soldier_queue.pop(0)
-            soldier.release(self.tile.paths[self.owner.id])
+            soldier.release(self.path)
             self.tile.board.add_unit(soldier)
             # print(f"Releasing a players {soldier.tile.owner.id} soldier")
 
@@ -204,8 +206,17 @@ class Barracks(Building):
                 path.destroy()
 
     def pass_to_upgraded_building(self, new_building):
-        new_building.path_sprite = self.path_sprite
-        new_building.can_release = self.can_release
+        new_building.path = self.path
+
+    def pack(self):
+        building_pack = super().pack()
+        building_pack.update({'path_id': self.path.path_id if self.path else None})
+        return building_pack
+
+    def unpack(self, data):
+        super().unpack(data)
+        if data['path_id']:
+            self.path = self.tile.board.get_path_by_id(data['path_id'])
 
 
 class SwordBarracks(Barracks):

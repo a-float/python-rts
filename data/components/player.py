@@ -42,7 +42,7 @@ class Player(Packable):
     def set_menu_image(self, menu_name):
         self.current_menu_image_name = menu_name
         image = self.menu_images[menu_name]
-        rect = image.get_rect(center=self.tile.rect.center)
+        rect = image.get_rect(center=self.marker.rect.center)
         self.menu_image = [image, rect]
 
     def set_is_online(self, is_online):
